@@ -1,0 +1,916 @@
+openapi: 3.0.3
+info:
+  description: "Description de l'API du serveur de gestion des ressources de l'application \"Billard-Book\".<br>Vous pouvez changer l'URL dans <code>servers</code> pour l'adapter au déploiement que vous souhaitez tester. Les autres valeurs ne doivent pas être modifiées."
+  version: "1.0.0"
+  title: "Billard-Book"
+servers:
+  - url: "http://localhost:8080"
+
+tags:
+  - name: "Users"
+    description: "Gestion des utilisateurs"
+  - name: "Réservations"
+    description: "Gestion des réservations"
+  - name: "Monitoring"
+    description: "Endpoints techniques de supervision (santé)"
+
+paths:
+  /users:
+    get:
+      tags:
+        - "Users"
+      summary: "Récupérer la collection d'utilisateurs"
+      description: "Renvoie les URI de tous les utilisateurs"
+      operationId: "getAllUsers"
+      responses:
+        '200':
+          description: "Liste des IDs de tous  les utilisateurs"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Users"
+              example:
+                users:
+                  - link: "users/toto"
+                  - link: "users/titi"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Users"
+              example: "<users>\n\t<link href=\"users/toto\"/>\n\t<link href=\"users/titi\"/>\n</users>"
+    post:
+      tags:
+        - "Users"
+      summary: "Créer un utilisateur"
+      description: "Crée un utilisateur avec un login et nom. Remarque : il est créé si le login n'existait pas déjà. Dans ce cas, on renvoie un code 201. Sinon, on renvoie un 409 (Conflict)."
+      operationId: "createUser"
+      requestBody:
+        description: "représentation de l'utilisateur"
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+            example:
+              login: "toto"
+              name: "Toto"
+          'application/xml':
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+            example: "<user>\n\t<login>toto</login>\n\t<name>Toto</name>\n</user>"
+          'application/x-www-form-urlencoded':
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+      responses:
+        '201':
+          description: "Utilisateur créé."
+          headers:
+            Location:
+              schema:
+                type: string
+              description: "l'URL (locale) de l'utilisateur créé"
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '409':
+          description: "Un utilisateur avec ce login existe déjà"
+
+  /users/{userId}:
+    get:
+      tags:
+        - "Users"
+      summary: "Récupérer un utilisateur"
+      description: "Renvoie une représentation d'un utilisateur. Cette représentation est complète si l'utilisateur est l'auteur de la requête, et partielle (sans les réservations réalisées) sinon."
+      operationId: "getUserById"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Description complète de l'utilisateur"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+              example:
+                login: "toto"
+                name: "Test"
+                ownedReservations: ['reservations/7', 'reservations/10']
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+              example: "<user>\n\t<login>toto</login>\n\t<name>Toto</name>\n\t<ownedReservations>\n\t\t<reservation>reservations/4</reservation>\n\t\t<reservation>reservations/8</reservation>\n\t</ownedReservation>\n</user>"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Utilisateur non trouvé"
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - "Users"
+      summary: "Créer ou mettre à jour un utilisateur"
+      description: "Crée un utilisateur s'il n'existe pas ou le met à jour si le login correspond à un utilisateur existant"
+      operationId: "updateUser"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: "représentation de l'utilisateur (les propriétés autres que login sont optionnelles)"
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: "#/components/schemas/UserRequest/properties/name"
+            example:
+              name: "Toto"
+          'application/xml':
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: "#/components/schemas/UserRequest/properties/name"
+              xml:
+                name: "user"
+            example:
+              name: "Toto"
+      responses:
+        '201':
+          description: "Utilisateur créé."
+          headers:
+            Location:
+              description: "l'URL (locale) de l'utilisateur créé"
+              schema:
+                type: string
+        '204':
+          description: "Utilisateur modifié"
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '401':
+          description: "Utilisateur non authentifié"
+        '403':
+          description: "Utilisateur authentifié avec un autre login"
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - "Users"
+      summary: "Supprimer un utilisateur"
+      description: "Supprime un utilisateur de la collection d'utilisateurs. Renvoie un code 204 si l'utilisateur était bien dans la collection, ou un 404 sinon."
+      operationId: "deleteUser"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Id de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: "Utilisateur supprimé"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Utilisateur non trouvé"
+
+  /users/{userId}/name:
+    get:
+      tags:
+        - "Users"
+      summary: "Récupérer le nom d'un utilisateur"
+      description: "Renvoie le nom d'un utilisateur"
+      operationId: "getUserNameById"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Nom de l'utilisateur"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamePropertyUserResponse"
+              example:
+                name: "Toto"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/NamePropertyUserResponse"
+              example: "<user>\n\t<name>Toto</name>\n</user>"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Utilisateur non trouvé"
+      security:
+        - bearerAuth: []
+  /users/{userId}/ownedReservations:
+    get:
+      tags:
+        - "Users"
+      summary: "Récupérer la collection des réservations réalisées par un utilisateur"
+      description: "Renvoie la collection des réservations réalisées par un utilisateur"
+      operationId: "getUserOwnedReservationsById"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Réservations créées par l'utilisateur"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedReservationsPropertyUserResponse"
+              example:
+                ownedReservations:
+                  - link: "reservations/1"
+                  - link: "reservations/3"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/OwnedReservationsPropertyUserResponse"
+              example: "<ownedReservations>\n\t<reservation>reservations/5</reservation>\n\t<reservation>reservations/12</reservation>\n</ownedReservation>"
+        '401':
+          description: "Utilisateur non authentifié"
+        '403':
+          description: "Utilisateur authentifié avec un autre login"
+        '404':
+          description: "Utilisateur non trouvé"
+      security:
+        - bearerAuth: []
+  /users/{userId}/ownedReservations/*:
+    get:
+      tags:
+        - "Users"
+      summary: "Récupérer une sous-propriété de la collection des réservations réalisées par un utilisateur"
+      description: "Redirige vers la sous-propriété par l'URL du reservation"
+      operationId: "getUserOwnedReservationsSubproperty"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: "Redirection vers la sous-ressource correspondante de la collection de reservations (pas de test d'existence)"
+          headers:
+            Link:
+              schema:
+                type: string
+              description: "l'URL (locale) de la sous-ressource correspondante de la collection de reservations"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Utilisateur non trouvé"
+      security:
+        - bearerAuth: []
+  /users/{userId}/registeredReservations:
+    get:
+      tags:
+        - "Users"
+      summary: "Récupérer la collection des réservations auxquelles un utilisateur est inscrit"
+      description: "Renvoie la collection des réservations auxquelles un utilisateur est inscrit"
+      operationId: "getUserRegisteredReservationsById"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Réservations auxquelles l'utilisateur est inscrit"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisteredReservationsPropertyUserResponse"
+              example:
+                registeredReservations:
+                  - link: "reservations/0"
+                  - link: "reservations/4"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/RegisteredReservationsPropertyUserResponse"
+              example: "<registeredReservations>\n\t<reservation>reservations/1</reservation>\n\t<reservation>reservations/2</reservation>\n</registeredReservation>"
+        '401':
+          description: "Utilisateur non authentifié"
+        '403':
+          description: "Utilisateur authentifié avec un autre login"
+        '404':
+          description: "Utilisateur non trouvé"
+      security:
+        - bearerAuth: []
+  /users/{userId}/registeredReservations/*:
+    get:
+      tags:
+        - "Users"
+      summary: "Récupérer une sous-propriété de la collection des réservations auxquelles un utilisateur est inscrit"
+      description: "Redirige vers la sous-propriété par l'URL du reservation"
+      operationId: "getUserRegisteredReservationsSubproperty"
+      parameters:
+        - name: userId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: "Redirection vers la sous-ressource correspondante de la collection de reservations (pas de test d'existence)"
+          headers:
+            Link:
+              schema:
+                type: string
+              description: "l'URL (locale) de la sous-ressource correspondante de la collection de reservations"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Utilisateur non trouvé"
+      security:
+        - bearerAuth: []
+
+  /users/login:
+    post:
+      tags:
+        - "Users"
+      summary: "Connecter un utilisateur (opération métier)"
+      description: "Connecte un utilisateur. Renvoie un code 204 si le login et le mot de passe (aka nom) correspondent, 401 sinon."
+      operationId: "loginUser"
+      requestBody:
+        description: "login de l'utilisateur"
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+          'application/xml':
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+          'application/x-www-form-urlencoded':
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+      responses:
+        '204':
+          description: "Utilisateur logué."
+          headers:
+            Authorization:
+              schema:
+                type: string
+              description: "le token d'authentification"
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '401':
+          description: "Les login et mot de passe ne correspondent pas"
+        '404':
+          description: "Utilisateur non trouvé"
+  /users/logout:
+    post:
+      tags:
+        - "Users"
+      summary: "Déconnecter l'utilisateur connecté (opération métier)"
+      description: "Déconnecte l'utilisateur sans l'enlever de la collection d'utilisateurs. Si vous passez l'authentification dans des headers HTTP, cette méthode ne fait rien mais répond que l'opération s'est bien passée."
+      operationId: "logoutUser"
+      responses:
+        204:
+          description: "Utilisateur déconnecté"
+      security:
+        - bearerAuth: []
+
+  /reservations:
+    get:
+      summary: "Liste toutes les réservations"
+      operationId: listReservations
+      tags:
+        - "Réservations"
+      responses:
+        '200':
+          description: "Une liste d'IDs et de liens vers des réservations"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservations'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Reservations'
+              example: "<reservations>\n\t<link href=\"reservations/1\"/>\n\t<link href=\"reservations/5\"/>\n</reservations>"
+
+    post:
+      summary: "Crée une nouvelle réservation"
+      operationId: createReservation
+      tags:
+        - "Réservations"
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: "Détails d'une réservation"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+      responses:
+        '201':
+          description: "Réservation créée"
+          headers:
+            Location:
+              description: "URL de la réservation créée"
+              schema:
+                type: string
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '401':
+          description: "Utilisateur non authentifié"
+
+  /reservations/{reservationId}:
+    get:
+      summary: "Récupérer une réservation"
+      operationId: getReservation
+      tags:
+        - "Réservations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          description: "ID de la réservation"
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Détails de la réservation"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '404':
+          description: "Réservation non trouvée"
+        '401':
+          description: "Utilisateur non authentifié"
+        '410':
+          description: "La réservation a existé mais a été supprimée"
+
+    put:
+      summary: "Mise à jour d'une réservation existante"
+      operationId: updateReservation
+      tags:
+        - "Réservations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          description: "ID de la réservation à mettre à jour"
+          schema:
+            type: integer
+      requestBody:
+        description: "Propriétés à modifier pour la réservation"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+      responses:
+        '204':
+          description: "Réservation correctement mise à jour"
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '401':
+          description: "Utilisateur non authentifié"
+        '403':
+          description: "Utilisateur non propriétaire de la réservation"
+        '404':
+          description: "Réservation non trouvée"
+
+    delete:
+      summary: "Supprimer une réservation"
+      operationId: deleteReservation
+      tags:
+        - "Réservations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          description: "ID de la réservation à supprimer"
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: "Réservation correctement suppprimée"
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '401':
+          description: "Utilisateur non authentifié"
+        '403':
+          description: "Utilisateur non propriétaire de la réservation"
+        '404':
+          description: "Réservation non trouvée"
+        '410':
+          description: "La réservation a existé mais a été supprimée"
+
+  /reservations/{reservationId}/players:
+    get:
+      tags:
+        - "Réservations"
+      summary: "Récupérer la collection des utilisateurs participants à une réservation"
+      description: "Renvoie une collection d'IDs d'utilisateurs participants à la réservation en paramètre"
+      operationId: "getRegisteredPlayerIds"
+      parameters:
+        - name: reservationId
+          in: "path"
+          description: "ID de la réservation"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Ressource correctement récupérée"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayersPropertyReservationResponse"
+              example:
+                players:
+                  - link: "users/toto"
+                  - link: "users/titi"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/PlayersPropertyReservationResponse"
+              example: "<players>\n\t<player>users/toto</player>\n\t<player>users/titi</player>\n</players>"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Réservation non trouvée"
+        '410':
+          description: "La réservation a existé mais a été supprimée"
+      security:
+        - bearerAuth: []
+  /reservations/{reservationId}/players/*:
+    get:
+      tags:
+        - "Réservations"
+      summary: "Récupérer une sous-propriété de la collection des participants à une réservation"
+      description: "Redirige vers la sous-propriété de la collection d'utilisateurs"
+      operationId: "getReservationPlayersSubproperty"
+      parameters:
+        - name: reservationId
+          in: "path"
+          description: "Login de l'utilisateur"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '302':
+          description: "Redirection vers la sous-ressource correspondante de la collection d'utilisteurs (pas de test d'existence)"
+          headers:
+            Link:
+              schema:
+                type: string
+              description: "l'URL (locale) de la sous-ressource correspondante de la collection d'utilisteurs"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Réservation non trouvée"
+        '410':
+          description: "La réservation a existé mais a été supprimée"
+      security:
+        - bearerAuth: []
+
+  /reservations/{reservationId}/register:
+    post:
+      summary: "Enregistrer l'utilisateur connecté comme participant à une réservation"
+      operationId: registerReservation
+      tags:
+        - "Réservations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          description: "ID de la réservation à laquelle enregistrer l'utilisateur"
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: "Utilisateur correctement enregistré dans les participants à la réservation"
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Réservation non trouvée"
+        '410':
+          description: "La réservation a existé mais a été supprimée"
+        '422':
+          description: "Utilisateur déjà enregistré dans la réservation, ou réservation complète"
+
+  /reservations/{reservationId}/unregister:
+    delete:
+      summary: "Supprimer l'enregistrement de l'utilisateur connecté comme participant à une réservation"
+      operationId: unregisterReservation
+      tags:
+        - "Réservations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          description: "ID de la réservation de laquelle supprimer l'utilisateur"
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: "Utilisateur correctement supprimé des participants à la réservation"
+        '400':
+          description: "Paramètres de la requête non acceptables (y compris utilisateur non participant à la réservation)"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Réservation non trouvée"
+        '410':
+          description: "La réservation a existé mais a été supprimée"
+        '422':
+          description: "Utilisateur non enregistré dans la réservation"
+
+  /reservations/{reservationId}/comment:
+    post:
+      summary: "Ajouter un commentaire à une réservation"
+      operationId: commentReservation
+      tags:
+        - "Réservations"
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          description: "ID de la réservation à commenter"
+          schema:
+            type: integer
+      requestBody:
+        description: "Contenu du commentaire"
+        content:
+          'application/json':
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+            example:
+              content: "J'ai peur qu'il ne fasse pas très beau."
+          'application/xml':
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+            example: "<comment>\n\t<content>J'ai peur qu'il ne fasse pas très beau.</content>\n</comment>"
+      responses:
+        '204':
+          description: "Commentaire correctement enregistré dans la réservation"
+        '400':
+          description: "Paramètres de la requête non acceptables"
+        '401':
+          description: "Utilisateur non authentifié"
+        '404':
+          description: "Réservation non trouvée"
+        '410':
+          description: "La réservation a existé mais a été supprimée"
+
+  /actuator/health:
+    get:
+      tags:
+        - "Monitoring"
+      summary: "Etat de santé de l'application"
+      description: "Endpoint de l'actuator exposant l'état global ainsi que les groupes (liveness/readiness). Public, sans authentification."
+      operationId: getHealth
+      responses:
+        '200':
+          description: "Statut de santé actuel"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+              example:
+                status: "UP"
+                groups:
+                  - "liveness"
+                  - "readiness"
+        '503':
+          description: "L'application signale un état DOWN / indisponible"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          description: "Etat global (UP / DOWN)"
+          example: "UP"
+        groups:
+          type: array
+          description: "Groupes d'indicateurs Actuator"
+          items:
+            type: string
+            example: "liveness"
+      required:
+        - status
+    Users:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/Link"
+      xml:
+        name: "users"
+    UserRequest:
+      type: object
+      properties:
+        login:
+          type: string
+          xml:
+            name: "login"
+        name:
+          type: string
+          xml:
+            name: "name"
+      xml:
+        name: "user"
+      required:
+        - login
+        - name
+    UserResponse:
+      type: object
+      properties:
+        login:
+          type: string
+          xml:
+            name: "login"
+        name:
+          type: string
+          xml:
+            name: "name"
+        ownedReservations:
+          type: array
+          items:
+            type: string
+          xml:
+            name: "ownedReservations"
+        registeredReservations:
+          type: array
+          items:
+            type: string
+          xml:
+            name: "registeredReservations"
+      xml:
+        name: "user"
+    NamePropertyUserResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          xml:
+            name: "name"
+      xml:
+        name: "user"
+    OwnedReservationsPropertyUserResponse:
+      type: array
+      xml:
+        name: "ownedReservations"
+        wrapped: true
+      items:
+        type: string
+        xml:
+          name: "reservation"
+          wrapped: true
+    RegisteredReservationsPropertyUserResponse:
+      type: array
+      xml:
+        name: "registeredReservations"
+        wrapped: true
+      items:
+        type: string
+        xml:
+          name: "reservation"
+          wrapped: true
+
+    Reservations:
+      type: object
+      properties:
+        reservations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Link"
+      xml:
+        name: "reservations"
+    ReservationRequest:
+      type: object
+      properties:
+        tableId:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+      xml:
+        name: "reservation"
+    ReservationResponse:
+      type: object
+      properties:
+        tableId:
+          type: string
+        ownerId:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+          description: Links to the users registered for the reservation.
+          xml:
+            name: "registeredUsers"
+            wrapped: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+          description: Complete descriptions of the comments (no link).
+      xml:
+        name: "reservation"
+    PlayersPropertyReservationResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Link"
+      description: "Links to the players' URLs"
+      xml:
+        name: "players"
+        wrapped: true
+
+    Comment:
+      type: object
+      xml:
+        name: "comment"
+      properties:
+        authorId:
+          type: string
+        content:
+          type: string
+    CommentRequest:
+      type: object
+      xml:
+        name: "comment"
+      properties:
+        content:
+          type: string
+
+    Link:
+      type: object
+      properties:
+        href:
+          type: string
+          description: The URL of the resource.
+          xml:
+            name: "href"
+            attribute: true
+      xml:
+        name: "link"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
