@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # API Billard Book
+  billard-api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: billard-book-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx512m -Xms256m
+      - JWT_EXPIRATION_MS=3600000
+    volumes:
+      # Mount pour les logs (optionnel)
+      - ./logs:/app/logs
+    networks:
+      - billard-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Serveur web pour le client (old)
+  # billard-client:
+  #   image: nginx:alpine
+  #   container_name: billard-book-client
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./client/src/main/webapp:/usr/share/nginx/html:ro
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #   networks:
+  #     - billard-network
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - billard-api
+
+  # Base de données (optionnel - si vous voulez ajouter une vraie DB plus tard)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: billard-db
+  #   environment:
+  #     POSTGRES_DB: billardbook
+  #     POSTGRES_USER: billard_user
+  #     POSTGRES_PASSWORD: secure_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+  #   networks:
+  #     - billard-network
+  #   restart: unless-stopped
+
+networks:
+  billard-network:
+    driver: bridge
+
+volumes:
+  # postgres_data:
+  logs:

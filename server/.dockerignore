@@ -1,0 +1,37 @@
+# Fichiers et dossiers à ignorer lors du build Docker
+
+# Cibles Maven
+target/
+!target/*.jar
+!target/*.war
+
+# Fichiers de configuration IDE
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Fichiers temporaires
+*.tmp
+*.temp
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Node modules si présents
+node_modules/
+
+# Fichiers Git
+.git/
+.gitignore
