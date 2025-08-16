@@ -1,0 +1,38 @@
+# ---- API / Java (Maven) ----
+# Maven target
+/target/
+
+# Logs / temp
+*.log
+hs_err_pid*
+replay_pid*
+
+# IDE
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build tools
+.mvn/wrapper/maven-wrapper.jar
+
+# Docker ignore style (optionnel si duplique .dockerignore)
+*.pid
+
+# Coverage / reports
+/site/
+/coverage/
+/jacoco*.exec
+
+# Generated sources (si régénérés)
+/generated-sources/
+/generated-test-sources/
+
+# Misc
+*.orig

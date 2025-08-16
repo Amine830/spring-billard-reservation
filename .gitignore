@@ -1,0 +1,56 @@
+# ---- Racine Billard-Book ----
+# Global OS / éditeur
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.orig
+*.log
+
+# Environnements / secrets (à adapter si besoin)
+.env
+.env.*
+*.local
+
+# Logs applicatifs
+logs/
+scripts/docker/logs/
+
+# Node / Frontend (sécurité si d'autres packages apparaissent)
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/coverage/
+
+# Build outputs Java/Maven (sécurité globale)
+**/target/
+
+# IDE / Tooling
+.idea/
+*.iml
+*.classpath
+*.project
+.vscode/*
+!.vscode/extensions.json
+
+# Misc
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Docker / runtime
+*.pid
+
+# Archives
+*.tar
+*.gz
+*.zip
+
+# Reports
+reports/
+
+# Generated OpenAPI clients éventuellement
+generated/
