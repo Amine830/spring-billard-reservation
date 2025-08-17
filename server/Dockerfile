@@ -1,7 +1,7 @@
 ## -----------------------------------------------------------
 ## Dockerfile multi-stage optimisé Billard-Book API (Spring)
 ## - Stage build: image Maven officielle avec Temurin 21
-## - Stage runtime: JRE allégé (Temurin) + support PORT (Render, etc.)
+## - Stage runtime: JRE allégé (Temurin) + support PORT
 ## - Healthcheck HTTP
 ## -----------------------------------------------------------
 

@@ -1,0 +1,119 @@
+@import './base.css';
+
+/* Thème : variables par défaut (light) */
+:root {
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #1a202c;
+  --color-text-soft: #4a5568;
+  --color-accent: #3182ce;
+  --color-accent-hover: #2b6cb0;
+  --color-danger: #e53e3e;
+  --color-danger-hover: #c53030;
+  --shadow-elev: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+body[data-theme='dark'] {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-text: #e2e8f0;
+  --color-text-soft: #94a3b8;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --shadow-elev: 0 2px 6px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+
+body[data-theme='dark'] #app { background: var(--color-bg); }
+
+#app {
+  /* Conteneur racine neutre : pas de max-width global pour ne pas contraindre les vues */
+  min-height: 100vh;
+  width: 100%;
+  font-weight: normal;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Adaptation globale */
+body { background: var(--color-bg); color: var(--color-text); }
+body[data-theme='dark'] a { color: var(--color-accent); }
+
+/* Composants génériques */
+body[data-theme='dark'] .reservation-card,
+body[data-theme='dark'] .quick-actions,
+body[data-theme='dark'] .reservations-section,
+body[data-theme='dark'] .card,
+body[data-theme='dark'] nav.main-nav {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-elev);
+  border-color: var(--color-border);
+}
+
+body[data-theme='dark'] .reservation-card,
+body[data-theme='dark'] .reservations-section,
+body[data-theme='dark'] .quick-actions { border:1px solid var(--color-border); }
+
+body[data-theme='dark'] .nav-link { color: var(--color-text-soft); }
+body[data-theme='dark'] .nav-link.active { background: var(--color-accent); }
+body[data-theme='dark'] .nav-link:hover { color: var(--color-text); }
+
+body[data-theme='dark'] .nav-btn.login { background: var(--color-accent); }
+body[data-theme='dark'] .nav-btn.login:hover { background: var(--color-accent-hover); }
+body[data-theme='dark'] .nav-btn.logout { background: var(--color-danger); }
+body[data-theme='dark'] .nav-btn.logout:hover { background: var(--color-danger-hover); }
+
+/* Inputs / boutons globaux */
+body[data-theme='dark'] .form-input { background:#0f172a; border-color: var(--color-border); color: var(--color-text); }
+body[data-theme='dark'] .form-input:focus { border-color: var(--color-accent); }
+body[data-theme='dark'] .btn-primary { background: var(--color-accent); }
+body[data-theme='dark'] .btn-primary:hover { background: var(--color-accent-hover); }
+body[data-theme='dark'] .btn-secondary { background: transparent; border-color: var(--color-border); color: var(--color-text-soft); }
+body[data-theme='dark'] .btn-secondary:hover { background:#1e293b; }
+body[data-theme='dark'] .btn-danger { background: var(--color-danger); }
+body[data-theme='dark'] .btn-danger:hover { background: var(--color-danger-hover); }
+
+/* Badges & états */
+body[data-theme='dark'] .table-id { background:#334155; color: var(--color-text-soft); }
+body[data-theme='dark'] .completed-badge { background:#14532d; color:#bbf7d0; }
+body[data-theme='dark'] .full-badge { background:#7f1d1d; color:#fecaca; }
+
+/* Commentaires */
+body[data-theme='dark'] .comment-item { background:#1e293b; }
+body[data-theme='dark'] .comment-input { background:#0f172a; border-color: var(--color-border); color: var(--color-text); }
+body[data-theme='dark'] .comment-submit { background: var(--color-accent); }
+body[data-theme='dark'] .comment-submit:hover { background: var(--color-accent-hover); }
+
+/* Messages */
+body[data-theme='dark'] .error-message { background:#7f1d1d; color:#fecaca; border-color:#991b1b; }
+body[data-theme='dark'] .success-message { background:#1e3a2a; color:#d1fae5; border-color:#047857; }
+body[data-theme='dark'] .info-message { background:#1e3a5f; color:#bfdbfe; border-color:#1d4ed8; }
+
+/* Conteneur utilitaire optionnel pour les pages qui veulent une largeur limitée */
+.app-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+/* Suppression de l'ancien layout grid forcé sur #app (source de conflits). 
+  Les pages définissent désormais leur propre layout. */

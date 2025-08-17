@@ -1,0 +1,26 @@
+{
+  "name": "Billard-Book",
+  "short_name": "BillardBook",
+  "description": "Réservation de tables de billard",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#1a202c",
+  "background_color": "#f8fafc",
+  "display": "standalone",
+  "start_url": "/"
+}

@@ -332,8 +332,6 @@ public Reservation(String tableId, String creatorId, ...) {
 | 409  | Conflict | Conflit de ressources (ex. doublon) |
 | 422  | Unprocessable Entity | Entité non traitable (ex. validation échouée) |
 
-
-
 **Logique 404 vs 410** :
 
 ```java
@@ -381,9 +379,7 @@ if (url.matches("/reservations/[^/]+/.*")) {
 
 La spécification OpenAPI complète est disponible dans :
 
-```bash
-[server/openapi/Billard-Book-api.yaml](server/openapi/Billard-Book-api.yaml)
-```
+[Spécification OpenAPI (Billard-Book-api.yaml)](openapi/Billard-Book-api.yaml)
 
 ## 🔍 Détails d'implémentation
 
