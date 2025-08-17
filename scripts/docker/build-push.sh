@@ -7,7 +7,20 @@ if [[ $# -lt 2 ]]; then
   echo "Usage: $0 <dockerhub_user> <version>" >&2
   exit 1
 fi
-USER="$1"
+
+ORIG_USER="$1"
+# Normaliser en minuscules (Docker Hub exige lowercase)
+USER="$(echo "$ORIG_USER" | tr 'A-Z' 'a-z')"
+if [[ "$USER" != "$ORIG_USER" ]]; then
+  echo "[info] Nom utilisateur normalisé en minuscules: $USER"
+fi
+
+# Validation simple (éviter interprétation comme registry custom)
+if [[ "$USER" =~ [^a-z0-9] ]]; then
+  echo "[error] Nom utilisateur invalide: $ORIG_USER (caractères autorisés: a-z0-9)" >&2
+  exit 2
+fi
+
 VERSION="$2"
 IMAGE="$USER/billard-book-api"
 
@@ -25,7 +38,7 @@ printf "[wait] Attente démarrage"; for i in {1..30}; do
   if [[ $i -eq 30 ]]; then echo "\n[error] Healthcheck KO"; exit 2; fi
 done
 
-echo "[push] Envoi vers Docker Hub"
+echo "[push] Envoi vers Docker Hub (repo: $IMAGE)"
 docker push "$IMAGE:$VERSION"
 docker push "$IMAGE:latest"
 

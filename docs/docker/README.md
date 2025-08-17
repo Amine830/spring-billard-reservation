@@ -25,6 +25,68 @@ curl -f http://localhost:8080/actuator/health
 
 Script d'automatisation build + test + push : `scripts/docker/build-push.sh`.
 
+## 🚢 Déploiement vers Docker Hub (Étapes détaillées)
+
+### 1. Choisir / fixer la version
+Idéalement synchroniser avec la version Maven (`pom.xml`). Exemple : `0.1.0`.
+
+### 2. Connexion au registre (une fois par session)
+```bash
+docker login -u <dockerhub_user>
+```
+
+### 3. Build + test santé + push (script)
+```bash
+./scripts/docker/build-push.sh <dockerhub_user> 0.1.0
+```
+Le script :
+- construit l'image avec deux tags : `:0.1.0` et `:latest`
+- lance un conteneur éphémère, attend `/actuator/health` UP
+- pousse les deux tags sur Docker Hub
+
+### 4. Vérification côté registre
+```bash
+docker pull <dockerhub_user>/billard-book-api:0.1.0
+docker run --rm -p 8080:8080 <dockerhub_user>/billard-book-api:0.1.0
+curl -f http://localhost:8080/actuator/health
+```
+
+### 5. Exécution avec variables d'environnement
+```bash
+docker run \
+  --rm -p 9090:8080 \
+  -e PORT=8080 \
+  -e SPRING_PROFILES_ACTIVE=docker \
+  -e JWT_EXPIRATION_MS=3600000 \
+  <dockerhub_user>/billard-book-api:0.1.0
+```
+
+### 6. (Optionnel) Build multi-architecture
+Utile si la plateforme cible (ex: Raspberry Pi) diffère de votre machine :
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t <dockerhub_user>/billard-book-api:0.1.0 \
+  -t <dockerhub_user>/billard-book-api:latest \
+  --push server/
+```
+
+### 7. (Optionnel) Politique de versionnage
+- `MAJEUR.MINOR.PATCH` (ex: 0.1.0)
+- Tag `latest` réservé à la dernière release stable
+- Utiliser des tags supplémentaires (ex: `0.1.0-build12`) en CI si besoin
+
+### 8. (Optionnel) Intégration Render / autre PaaS
+Dans Render : choisir "Deploy an existing image" et saisir `docker.io/<dockerhub_user>/billard-book-api:0.1.0` + définir la variable `PORT` si imposée. Aucun Dockerfile nécessaire côté Render.
+
+### 9. Récapitulatif minimal
+```bash
+docker login -u monuser
+./scripts/docker/build-push.sh monuser 0.1.0
+docker run --rm -p 8080:8080 monuser/billard-book-api:0.1.0
+```
+
+---
+
 ## 🏗️ Architecture Conteneurs
 
 ```text

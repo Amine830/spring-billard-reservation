@@ -13,6 +13,7 @@
             required
             class="form-input"
             placeholder="Votre login"
+            autocomplete="username"
           />
         </div>
 
@@ -25,6 +26,7 @@
             required
             class="form-input"
             placeholder="Choisissez un mot de passe"
+            autocomplete="new-password"
           />
         </div>
 
@@ -37,6 +39,7 @@
             required
             class="form-input"
             :placeholder="isRegistering ? 'Retapez le mot de passe' : 'Votre mot de passe'"
+            :autocomplete="isRegistering ? 'new-password' : 'current-password'"
           />
         </div>
 

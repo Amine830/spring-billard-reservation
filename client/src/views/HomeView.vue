@@ -108,8 +108,7 @@
           
           <div class="footer-section">
             <h4>Contact</h4>
-            <p>📧 contact@billard-book.fr</p>
-            <p>📞 01 23 45 67 89</p>
+            <p>📧 amine.nedjar4716@gmail.com </p>
           </div>
         </div>
         
