@@ -1,5 +1,14 @@
 # Billard-Book
 
+<!-- Badges -->
+[![Netlify Status](https://api.netlify.com/api/v1/badges/9b86218f-4efa-4e14-9348-1c4065a03a8b/deploy-status)](https://app.netlify.com/projects/billard-book/deploys)
+![Java 21](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.x-6DB33F?logo=springboot&logoColor=white)
+![Vue 3](https://img.shields.io/badge/Vue.js-3-42b883?logo=vue.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
+![Docker Multi‑Stage](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
+![License MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 Plateforme pédagogique de gestion de réservations de tables de billard composée d'une API Java (Spring-like structure) et d'un client web SPA Vue 3.
 
 ## 🎯 Objectifs pédagogiques
@@ -164,3 +173,13 @@ Pour plus de détails techniques : consultez les README spécifiques dans [`serv
 - Sécurité UI : suppression de l'affichage du champ mot de passe (ex-`name`) partout; uniquement champ de saisie masqué lors de la modification.
 - Liste utilisateurs : chargement détaillé individuel (follow des liens) avec stats créées / participations; fallback robuste si certaines listes manquent.
 - Base URL API dynamique : `VITE_API_BASE_URL` pour différencier environnement local (proxy `/api`) et déploiement (URL distante).
+
+## 📫 Contact
+
+- Maintainer: [@Amine830](https://github.com/Amine830)
+- Bugs / idées : créer une *issue* GitHub (labels `bug`, `enhancement`)
+- Démo frontend : Netlify (voir badge statut en haut)
+- Image API : Docker Hub (voir section Docker)
+
+Pour demandes avancées (persistance, CI/CD, observabilité), ouvrir une issue dédiée.
+
