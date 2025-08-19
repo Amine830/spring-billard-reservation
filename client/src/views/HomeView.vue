@@ -1,33 +1,16 @@
 <template>
   <div class="home">
-    <header class="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">🎱 Billard-Book</h1>
-        <p class="hero-subtitle">
-          Votre plateforme de réservation de tables de billard
-        </p>
-        <p class="hero-description">
-          Réservez facilement une table, rejoignez des parties ou organisez vos propres tournois.
-        </p>
-        
+    <HeroCarousel>
+      <div class="hero-overlay-content">
+        <h1 class="hero-title">Billard-Book</h1>
+        <p class="hero-subtitle">Votre plateforme de réservation de tables de billard</p>
+        <p class="hero-description">Réservez facilement une table, rejoignez des parties ou organisez vos propres tournois.</p>
         <div class="hero-actions">
-          <router-link 
-            v-if="!authStore.isAuthenticated" 
-            to="/login" 
-            class="btn btn-primary btn-large"
-          >
-            Se connecter
-          </router-link>
-          <router-link 
-            v-else 
-            to="/dashboard" 
-            class="btn btn-primary btn-large"
-          >
-            Accéder au Dashboard
-          </router-link>
+          <router-link v-if="!authStore.isAuthenticated" to="/login" class="btn btn-primary btn-large">Se connecter</router-link>
+          <router-link v-else to="/dashboard" class="btn btn-primary btn-large">Accéder au Dashboard</router-link>
         </div>
       </div>
-    </header>
+    </HeroCarousel>
 
     <section class="features">
       <div class="container">
@@ -122,6 +105,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
+import HeroCarousel from '@/components/HeroCarousel.vue'
 
 const authStore = useAuthStore()
 </script>
@@ -133,20 +117,12 @@ const authStore = useAuthStore()
   flex-direction: column;
 }
 
-.hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 4rem 1rem;
-  text-align: center;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hero-content {
-  max-width: 800px;
+/* Hero carousel overlay content */
+.hero-overlay-content {
+  max-width: 900px;
   margin: 0 auto;
+  pointer-events: auto;
+  padding: 0 1rem;
 }
 
 .hero-title {

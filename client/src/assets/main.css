@@ -72,6 +72,9 @@ body[data-theme='dark'] .form-input { background:#0f172a; border-color: var(--co
 body[data-theme='dark'] .form-input:focus { border-color: var(--color-accent); }
 body[data-theme='dark'] .btn-primary { background: var(--color-accent); }
 body[data-theme='dark'] .btn-primary:hover { background: var(--color-accent-hover); }
+/* Forcer lisibilité texte bouton primaire dans tous les thèmes */
+.btn-primary { color: #fff !important; }
+body[data-theme='dark'] .btn-primary { color: #fff !important; }
 body[data-theme='dark'] .btn-secondary { background: transparent; border-color: var(--color-border); color: var(--color-text-soft); }
 body[data-theme='dark'] .btn-secondary:hover { background:#1e293b; }
 body[data-theme='dark'] .btn-danger { background: var(--color-danger); }
