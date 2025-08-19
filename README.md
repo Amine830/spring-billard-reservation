@@ -140,6 +140,7 @@ docker build -t test-api server/ && docker run --rm -p 8080:8080 test-api
 - OpenAPI : [`server/openapi/Billard-Book-api.yaml`](server/openapi/Billard-Book-api.yaml)
 - Collection Postman : [`server/postman/`](server/postman/)
 - Favicon & PWA manifest : [`client/public/`](client/public/site.webmanifest)
+- Captures d'écran : [`docs/screenshots/`](docs/screenshots/)
 
 ## 🗺️ Roadmap synthétique
 
@@ -149,20 +150,6 @@ docker build -t test-api server/ && docker run --rm -p 8080:8080 test-api
 - [ ] Internationalisation (FR/EN)
 - [ ] Persistance BD (PostgreSQL) + migrations
 - [ ] Amélioration du système d'authentification et gestion des rôles
-
-## 🤝 Contribution
-
-1. Fork + branche feature
-2. Lint / build locaux OK
-3. PR avec description claire (screens si UI)
-4. Respect style TypeScript / conventions Java
-
-## 📄 Licence
-
-Projet sous licence MIT (voir fichier [`LICENSE`](LICENSE)).
-
----
-Pour plus de détails techniques : consultez les README spécifiques dans [`server/`](server/) et [`client/`](client/).
 
 ## 🆕 Changements récents (Frontend)
 
@@ -174,6 +161,23 @@ Pour plus de détails techniques : consultez les README spécifiques dans [`serv
 - Liste utilisateurs : chargement détaillé individuel (follow des liens) avec stats créées / participations; fallback robuste si certaines listes manquent.
 - Base URL API dynamique : `VITE_API_BASE_URL` pour différencier environnement local (proxy `/api`) et déploiement (URL distante).
 
+## 🖼️ Aperçu visuel
+
+![Accueil clair](docs/screenshots/billard0.png)
+
+Plus de captures et légendes: voir [`docs/screenshots/`](docs/screenshots/).
+
+## 🤝 Contribution
+
+1. Fork + branche feature
+2. Lint / build locaux OK
+3. PR avec description claire (screens si UI)
+4. Respect style TypeScript / conventions Java
+
+---
+
+Pour plus de détails techniques : consultez les README spécifiques dans [`server/`](server/) et [`client/`](client/).
+
 ## 📫 Contact
 
 - Maintainer: [@Amine830](https://github.com/Amine830)
@@ -183,3 +187,6 @@ Pour plus de détails techniques : consultez les README spécifiques dans [`serv
 
 Pour demandes avancées (persistance, CI/CD, observabilité), ouvrir une issue dédiée.
 
+## 📄 Licence
+
+Projet sous licence MIT (voir fichier [`LICENSE`](LICENSE)).
