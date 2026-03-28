@@ -1,89 +1,91 @@
 <template>
-  <div class="users-view">
-    <header class="page-header">
-      <div class="header-content">
-        <h1>👥 Liste des utilisateurs</h1>
-        <p class="subtitle">Découvrez les membres de la communauté Billard-Book</p>
-      </div>
-    </header>
+  <section class="users-page">
+    <div class="app-container users-layout">
+      <header class="users-header ui-card">
+        <div>
+          <p class="eyebrow">Communaute</p>
+          <h1>Utilisateurs</h1>
+          <p class="subtitle">Retrouvez les membres actifs et leurs statistiques de participation.</p>
+        </div>
 
-    <main class="page-content">
-      <div class="container">
-        <!-- États de chargement et erreur -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner"></div>
+        <div class="header-actions">
+          <label class="search-field" for="user-search">
+            <Search :size="16" aria-hidden="true" />
+            <span class="sr-only">Rechercher un utilisateur</span>
+            <input id="user-search" v-model.trim="search" type="search" class="form-input" placeholder="Rechercher" />
+          </label>
+
+          <button type="button" class="btn btn-secondary" @click="loadUsers" :disabled="loading">
+            <RefreshCw :size="16" aria-hidden="true" />
+            <span>Actualiser</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="users-panel ui-card" aria-labelledby="users-list-title">
+        <div class="panel-head">
+          <h2 id="users-list-title">Membres inscrits</h2>
+          <span class="count-pill">{{ filteredUsers.length }}</span>
+        </div>
+
+        <div v-if="loading" class="state-box" role="status" aria-live="polite">
+          <LoaderCircle :size="18" class="spin" aria-hidden="true" />
           <p>Chargement des utilisateurs...</p>
         </div>
 
-        <div v-else-if="error" class="error-state">
-          <div class="error-icon">⚠️</div>
-          <h3>Erreur de chargement</h3>
+        <div v-else-if="error" class="error-message state-box">
           <p>{{ error }}</p>
-          <button @click="loadUsers" class="retry-button">
-            Réessayer
-          </button>
+          <button type="button" class="btn btn-secondary" @click="loadUsers">Reessayer</button>
         </div>
 
-        <!-- Liste des utilisateurs -->
-        <div v-else class="users-section">
-          <div class="section-header">
-            <h2>Utilisateurs inscrits ({{ usersList.length }})</h2>
-            <button @click="loadUsers" class="refresh-button" :disabled="loading">
-              🔄 Actualiser
-            </button>
-          </div>
+        <div v-else-if="filteredUsers.length === 0" class="state-box">
+          <p>Aucun utilisateur ne correspond a votre recherche.</p>
+        </div>
 
-          <div v-if="usersList.length === 0" class="empty-state">
-            <div class="empty-icon">👤</div>
-            <h3>Aucun utilisateur trouvé</h3>
-            <p>Il n'y a pas encore d'utilisateurs inscrits.</p>
-          </div>
+        <div v-else class="users-grid">
+          <article
+            v-for="user in filteredUsers"
+            :key="user.login"
+            class="user-card ui-card"
+            :class="{ 'is-current': user.login === currentUserLogin }"
+          >
+            <header class="user-card-head">
+              <div class="avatar" aria-hidden="true">{{ initials(user.login) }}</div>
+              <div>
+                <h3>@{{ user.login }}</h3>
+                <p class="user-role">{{ roleFor(user.login) }}</p>
+              </div>
+            </header>
 
-          <div v-else class="users-grid">
-            <div 
-              v-for="user in usersList" 
-              :key="user.login"
-              class="user-card"
-              :class="{ 'current-user': user.login === currentUserLogin }"
-            >
-              <div class="user-avatar">
-                <span class="avatar-icon">👤</span>
-              </div>
-              <div class="user-info">
-                <h3 class="user-login">@{{ user.login }}</h3>
-                <div v-if="user.login === currentUserLogin" class="current-user-badge">
-                  ⭐ C'est vous !
-                </div>
-              </div>
-              <div class="user-stats" v-if="user.ownedReservations || user.registeredReservations">
-                <div class="stat" v-if="user.ownedReservations">
-                  <span class="stat-number">{{ user.ownedReservations.length }}</span>
-                  <span class="stat-label">Créées</span>
-                </div>
-                <div class="stat" v-if="user.registeredReservations">
-                  <span class="stat-number">{{ user.registeredReservations.length }}</span>
-                  <span class="stat-label">Participations</span>
-                </div>
-              </div>
-              <div class="user-actions">
-                <button 
-                  @click="viewUserDetails(user.login)"
-                  class="view-button"
-                  :disabled="loadingUserDetails[user.login]"
-                >
-                  {{ loadingUserDetails[user.login] ? 'Chargement...' : 'Voir profil' }}
-                </button>
-              </div>
+            <div class="badges-row">
+              <span v-if="user.login === currentUserLogin" class="ui-badge status-success">Vous</span>
+              <span class="ui-badge status-info">{{ roleFor(user.login) }}</span>
             </div>
-          </div>
+
+            <dl class="stats-grid">
+              <div>
+                <dt>Reservations creees</dt>
+                <dd>{{ user.ownedReservations?.length || 0 }}</dd>
+              </div>
+              <div>
+                <dt>Participations</dt>
+                <dd>{{ user.registeredReservations?.length || 0 }}</dd>
+              </div>
+            </dl>
+
+            <div class="user-actions">
+              <router-link v-if="user.login === currentUserLogin" to="/profile" class="btn btn-primary">Mon profil</router-link>
+            </div>
+          </article>
         </div>
-      </div>
-    </main>
-  </div>
+      </section>
+    </div>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { LoaderCircle, RefreshCw, Search } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { userService } from '@/services/users'
 import type { User } from '@/types'
@@ -92,11 +94,16 @@ const authStore = useAuthStore()
 
 const loading = ref(false)
 const error = ref<string | null>(null)
-const userLinks = ref<{ link: string }[]>([])
 const usersList = ref<User[]>([])
-const loadingUserDetails = ref<Record<string, boolean>>({})
+const search = ref('')
 
-const currentUserLogin = computed(() => authStore.user?.login)
+const currentUserLogin = computed(() => authStore.user?.login || '')
+
+const filteredUsers = computed(() => {
+  const keyword = search.value.toLowerCase()
+  if (!keyword) return usersList.value
+  return usersList.value.filter(user => user.login.toLowerCase().includes(keyword))
+})
 
 onMounted(() => {
   loadUsers()
@@ -106,340 +113,275 @@ async function loadUsers() {
   try {
     loading.value = true
     error.value = null
-    
-    // Récupérer la liste des liens vers les utilisateurs
-    const usersResponse = await userService.getUsers()
-    userLinks.value = usersResponse.users || []
-    
-    // Extraire les logins des liens et récupérer les détails de chaque utilisateur
+
+    const response = await userService.getUsers()
     const users: User[] = []
-    for (const linkObj of userLinks.value) {
+
+    for (const linkObj of response.users || []) {
+      const login = linkObj.link
+      if (!login) continue
+
       try {
-        // Le login est directement dans la propriété 'link'
-        const login = linkObj.link
-        if (login) {
-          const user = await userService.getUser(login)
-          users.push(user)
-        }
-      } catch (err) {
-        console.warn(`Erreur lors du chargement de l'utilisateur ${linkObj.link}:`, err)
+        const user = await userService.getUser(login)
+        users.push(user)
+      } catch (requestError) {
+        console.warn(`Impossible de charger ${login}`, requestError)
       }
     }
-    
-    usersList.value = users
-  } catch (err: unknown) {
-    console.error('Erreur lors du chargement des utilisateurs:', err)
-    error.value = (err as Error).message || 'Erreur lors du chargement des utilisateurs'
+
+    usersList.value = users.sort((a, b) => a.login.localeCompare(b.login))
+  } catch (requestError: unknown) {
+    const requestMessage = requestError instanceof Error ? requestError.message : 'Erreur lors du chargement des utilisateurs'
+    error.value = requestMessage
   } finally {
     loading.value = false
   }
 }
 
-async function viewUserDetails(login: string) {
-  try {
-    loadingUserDetails.value[login] = true
-    
-    // Pour l'instant, on affiche juste les détails dans la console
-    // Dans une vraie application, on pourrait naviguer vers une page de profil
-    // const user = await userService.getUser(login)
-    // console.log('Détails de l\'utilisateur:', user)
-    alert(`Profil de @${login}`)
-  } catch (err: unknown) {
-    console.error('Erreur lors du chargement des détails:', err)
-    alert('Erreur lors du chargement du profil utilisateur')
-  } finally {
-    loadingUserDetails.value[login] = false
-  }
+function initials(login: string): string {
+  return login.slice(0, 2).toUpperCase()
+}
+
+function roleFor(login: string): string {
+  return login.toLowerCase() === 'admin' ? 'Admin' : 'Membre'
 }
 </script>
 
 <style scoped>
-.users-view {
+.users-page {
   min-height: 100vh;
-  background: var(--color-bg);
-  color: var(--color-text);
+  padding: var(--space-8) 0 var(--space-10);
 }
 
-.page-header {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  padding: 2rem 0;
+.users-layout {
+  display: grid;
+  gap: var(--space-6);
 }
 
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  text-align: center;
+.users-header {
+  padding: var(--space-6);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-6);
+  align-items: flex-start;
 }
 
-.page-header h1 {
-  font-size: 2.5rem;
-  color: var(--color-text);
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-soft);
+  font-weight: 700;
+}
+
+.users-header h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.8vw, 1.9rem);
 }
 
 .subtitle {
+  margin: var(--space-2) 0 0;
   color: var(--color-text-soft);
-  font-size: 1.1rem;
-  margin: 0;
 }
 
-.page-content {
-  padding: 2rem 0;
+.header-actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 15rem;
 }
 
-.loading-state, .error-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--color-text);
+.search-field svg {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-soft);
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e2e8f0;
-  border-left: 4px solid #4299e1;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+.search-field .form-input {
+  padding-left: 2.2rem;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.users-panel {
+  padding: var(--space-5);
 }
 
-.error-state {
-  color: var(--color-danger);
-}
-
-.error-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.retry-button {
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  margin-top: 1rem;
-}
-
-.retry-button:hover {
-  background: #3182ce;
-}
-
-.users-section {
-  background: var(--color-surface);
-  border-radius: 12px;
-  box-shadow: var(--shadow-elev);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.section-header {
+.panel-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: var(--space-5);
 }
 
-.section-header h2 {
+.panel-head h2 {
   margin: 0;
-  color: var(--color-text);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
-.refresh-button {
-  background: var(--color-bg);
+.count-pill {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
   color: var(--color-text-soft);
-  border: 2px solid var(--color-border);
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-.refresh-button:hover:not(:disabled) {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-}
-.refresh-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  font-weight: 700;
 }
 
-.refresh-button:hover:not(:disabled) {
-  background: #edf2f7;
-  border-color: #cbd5e0;
-}
-
-.refresh-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
+.state-box {
+  min-height: 9rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-3);
   color: var(--color-text-soft);
 }
 
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .users-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
 }
 
 .user-card {
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  background: var(--color-surface);
-  transition: all 0.2s ease;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.user-card.is-current {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.user-card-head {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.user-card:hover {
-  box-shadow: var(--shadow-elev);
-  transform: translateY(-2px);
-}
-.user-card.current-user {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent);
-}
-
-.user-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.user-card.current-user {
-  border-color: #4299e1;
-  box-shadow: 0 0 0 1px #4299e1;
-}
-
-.user-avatar {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--color-accent) 0%, #764ba2 100%);
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
+  gap: var(--space-3);
   align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 auto;
+  margin-bottom: var(--space-3);
 }
 
-.avatar-icon {
-  font-size: 2rem;
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-primary-contrast);
+  background: linear-gradient(140deg, var(--color-primary), var(--color-info));
 }
 
-.user-info {
-  text-align: center;
+.user-card-head h3 {
+  margin: 0;
+  font-size: 1rem;
 }
 
-.user-login {
-  margin: 0 0 0.5rem 0;
+.user-role {
+  margin: var(--space-1) 0 0;
   color: var(--color-text-soft);
-  font-size: 0.9rem;
-}
-
-.current-user-badge {
-  background: #c6f6d5;
-  color: #22543d;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
   font-size: 0.8rem;
-  font-weight: 500;
-  display: inline-block;
 }
 
-.user-stats {
+.badges-row {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
-.stat {
-  text-align: center;
+.stats-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
 }
 
-.stat-number {
-  display: block;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-accent);
+.stats-grid div {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
 }
 
-.stat-label {
-  font-size: 0.8rem;
-  color: #718096;
+.stats-grid dt {
+  margin: 0;
+  color: var(--color-text-soft);
+  font-size: 0.72rem;
   text-transform: uppercase;
-  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.stats-grid dd {
+  margin: var(--space-1) 0 0;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .user-actions {
-  margin-top: auto;
+  margin-top: var(--space-3);
+  min-height: 2.5rem;
 }
 
-.view-button {
-  width: 100%;
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.view-button:hover:not(:disabled) {
-  background: #3182ce;
-}
-
-.view-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-  .page-header h1 {
-    font-size: 2rem;
+@media (max-width: 900px) {
+  .users-page {
+    padding-top: var(--space-6);
   }
-  
-  .users-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .section-header {
+
+  .users-header {
     flex-direction: column;
-    text-align: center;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .search-field {
+    flex: 1;
+    min-width: 12rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

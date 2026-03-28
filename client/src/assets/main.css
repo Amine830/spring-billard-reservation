@@ -1,122 +1,251 @@
 @import './base.css';
 
-/* Thème : variables par défaut (light) */
 :root {
-  --color-bg: #f8fafc;
+  --font-sans: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-display: 'Sora', 'Avenir Next', 'Segoe UI', sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.18);
+
+  --color-bg: #f2f6fa;
   --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-text: #1a202c;
-  --color-text-soft: #4a5568;
-  --color-accent: #3182ce;
-  --color-accent-hover: #2b6cb0;
-  --color-danger: #e53e3e;
-  --color-danger-hover: #c53030;
-  --shadow-elev: 0 1px 3px rgba(0,0,0,0.1);
+  --color-surface-2: #f8fbff;
+  --color-border: #d9e2ec;
+  --color-text: #102a43;
+  --color-text-soft: #486581;
+  --color-primary: #0b6e99;
+  --color-primary-hover: #095a7d;
+  --color-primary-contrast: #ffffff;
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary-hover);
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #be123c;
+  --color-danger-hover: #9f1239;
+  --color-info: #0369a1;
+  --focus-ring: rgba(11, 110, 153, 0.3);
+  --shadow-elev: var(--shadow-md);
 }
 
 body[data-theme='dark'] {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-border: #334155;
-  --color-text: #e2e8f0;
-  --color-text-soft: #94a3b8;
-  --color-accent: #3b82f6;
-  --color-accent-hover: #2563eb;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --shadow-elev: 0 2px 6px rgba(0,0,0,0.5);
+  --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.42);
+  --shadow-md: 0 10px 28px rgba(2, 6, 23, 0.46);
+  --shadow-lg: 0 20px 56px rgba(2, 6, 23, 0.52);
+
+  --color-bg: #071827;
+  --color-surface: #0f2436;
+  --color-surface-2: #14314a;
+  --color-border: #284b63;
+  --color-text: #f2f7fb;
+  --color-text-soft: #bed1e0;
+  --color-primary: #38bdf8;
+  --color-primary-hover: #0ea5e9;
+  --color-primary-contrast: #062138;
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary-hover);
+  --color-success: #4ade80;
+  --color-warning: #fb923c;
+  --color-danger: #fb7185;
+  --color-danger-hover: #f43f5e;
+  --color-info: #7dd3fc;
+  --focus-ring: rgba(125, 211, 252, 0.35);
+  --shadow-elev: var(--shadow-md);
   color-scheme: dark;
 }
 
-body[data-theme='dark'] #app { background: var(--color-bg); }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(circle at 5% -10%, rgba(56, 189, 248, 0.14), transparent 36%),
+    radial-gradient(circle at 95% 0%, rgba(14, 165, 233, 0.12), transparent 40%),
+    var(--color-bg);
+  color: var(--color-text);
+}
 
 #app {
-  /* Conteneur racine neutre : pas de max-width global pour ne pas contraindre les vues */
   min-height: 100vh;
   width: 100%;
-  font-weight: normal;
   display: flex;
   flex-direction: column;
 }
 
-/* Adaptation globale */
-body { background: var(--color-bg); color: var(--color-text); }
-body[data-theme='dark'] a { color: var(--color-accent); }
-
-/* Composants génériques */
-body[data-theme='dark'] .reservation-card,
-body[data-theme='dark'] .quick-actions,
-body[data-theme='dark'] .reservations-section,
-body[data-theme='dark'] .card,
-body[data-theme='dark'] nav.main-nav {
-  background: var(--color-surface);
-  box-shadow: var(--shadow-elev);
-  border-color: var(--color-border);
-}
-
-body[data-theme='dark'] .reservation-card,
-body[data-theme='dark'] .reservations-section,
-body[data-theme='dark'] .quick-actions { border:1px solid var(--color-border); }
-
-body[data-theme='dark'] .nav-link { color: var(--color-text-soft); }
-body[data-theme='dark'] .nav-link.active { background: var(--color-accent); }
-body[data-theme='dark'] .nav-link:hover { color: var(--color-text); }
-
-body[data-theme='dark'] .nav-btn.login { background: var(--color-accent); }
-body[data-theme='dark'] .nav-btn.login:hover { background: var(--color-accent-hover); }
-body[data-theme='dark'] .nav-btn.logout { background: var(--color-danger); }
-body[data-theme='dark'] .nav-btn.logout:hover { background: var(--color-danger-hover); }
-
-/* Inputs / boutons globaux */
-body[data-theme='dark'] .form-input { background:#0f172a; border-color: var(--color-border); color: var(--color-text); }
-body[data-theme='dark'] .form-input:focus { border-color: var(--color-accent); }
-body[data-theme='dark'] .btn-primary { background: var(--color-accent); }
-body[data-theme='dark'] .btn-primary:hover { background: var(--color-accent-hover); }
-/* Forcer lisibilité texte bouton primaire dans tous les thèmes */
-.btn-primary { color: #fff !important; }
-body[data-theme='dark'] .btn-primary { color: #fff !important; }
-body[data-theme='dark'] .btn-secondary { background: transparent; border-color: var(--color-border); color: var(--color-text-soft); }
-body[data-theme='dark'] .btn-secondary:hover { background:#1e293b; }
-body[data-theme='dark'] .btn-danger { background: var(--color-danger); }
-body[data-theme='dark'] .btn-danger:hover { background: var(--color-danger-hover); }
-
-/* Badges & états */
-body[data-theme='dark'] .table-id { background:#334155; color: var(--color-text-soft); }
-body[data-theme='dark'] .completed-badge { background:#14532d; color:#bbf7d0; }
-body[data-theme='dark'] .full-badge { background:#7f1d1d; color:#fecaca; }
-
-/* Commentaires */
-body[data-theme='dark'] .comment-item { background:#1e293b; }
-body[data-theme='dark'] .comment-input { background:#0f172a; border-color: var(--color-border); color: var(--color-text); }
-body[data-theme='dark'] .comment-submit { background: var(--color-accent); }
-body[data-theme='dark'] .comment-submit:hover { background: var(--color-accent-hover); }
-
-/* Messages */
-body[data-theme='dark'] .error-message { background:#7f1d1d; color:#fecaca; border-color:#991b1b; }
-body[data-theme='dark'] .success-message { background:#1e3a2a; color:#d1fae5; border-color:#047857; }
-body[data-theme='dark'] .info-message { background:#1e3a5f; color:#bfdbfe; border-color:#1d4ed8; }
-
-/* Conteneur utilitaire optionnel pour les pages qui veulent une largeur limitée */
-.app-container {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-}
-
-a,
-.green {
+a {
+  color: var(--color-primary);
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+a:hover {
+  color: var(--color-primary-hover);
 }
 
-/* Suppression de l'ancien layout grid forcé sur #app (source de conflits). 
-  Les pages définissent désormais leur propre layout. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.app-container {
+  width: min(1200px, 100% - 2 * var(--space-6));
+  margin-inline: auto;
+}
+
+.ui-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ui-badge.status-success {
+  background: color-mix(in srgb, var(--color-success) 18%, transparent);
+  color: var(--color-success);
+}
+
+.ui-badge.status-danger {
+  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
+  color: var(--color-danger);
+}
+
+.ui-badge.status-info {
+  background: color-mix(in srgb, var(--color-info) 18%, transparent);
+  color: var(--color-info);
+}
+
+.form-input {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  padding: 0.625rem 0.75rem;
+  transition: border-color var(--duration-fast) var(--easing-standard), box-shadow var(--duration-fast) var(--easing-standard);
+}
+
+.form-input::placeholder {
+  color: color-mix(in srgb, var(--color-text-soft) 70%, transparent);
+}
+
+.form-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: none;
+}
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--easing-standard), background-color var(--duration-fast) var(--easing-standard), border-color var(--duration-fast) var(--easing-standard), box-shadow var(--duration-fast) var(--easing-standard);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-soft);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: #ffffff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger-hover);
+}
+
+.error-message,
+.success-message,
+.info-message {
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.error-message {
+  border-color: color-mix(in srgb, var(--color-danger) 35%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+}
+
+.success-message {
+  border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.info-message {
+  border-color: color-mix(in srgb, var(--color-info) 35%, transparent);
+  background: color-mix(in srgb, var(--color-info) 12%, transparent);
+  color: var(--color-info);
+}

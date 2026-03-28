@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { Moon, Sun } from 'lucide-vue-next'
 
 const THEME_KEY = 'theme'
 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -22,33 +23,35 @@ onMounted(() => {
 </script>
 
 <template>
-  <button class="theme-toggle" :title="current === 'dark' ? 'Passer au thème clair' : 'Passer au thème sombre'" @click="toggle">
-    <span v-if="current === 'dark'">☀️</span>
-    <span v-else>🌙</span>
+  <button
+    class="theme-toggle"
+    :title="current === 'dark' ? 'Activer le theme clair' : 'Activer le theme sombre'"
+    :aria-label="current === 'dark' ? 'Activer le theme clair' : 'Activer le theme sombre'"
+    :aria-pressed="current === 'dark'"
+    @click="toggle"
+    type="button"
+  >
+    <Sun v-if="current === 'dark'" :size="16" aria-hidden="true" />
+    <Moon v-else :size="16" aria-hidden="true" />
   </button>
 </template>
 
 <style scoped>
 .theme-toggle {
-  background: transparent;
-  border: 1px solid var(--color-border, #4a5568);
-  color: var(--color-text, #edf2f7);
-  padding: 0.35rem 0.6rem;
-  border-radius: 6px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-soft);
+  width: 2.25rem;
+  height: 2.25rem;
   cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color .2s, color .2s, border-color .2s;
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--easing-standard), color var(--duration-fast) var(--easing-standard), border-color var(--duration-fast) var(--easing-standard);
 }
 .theme-toggle:hover {
-  background: rgba(255,255,255,0.1);
+  background: var(--color-surface-2);
+  color: var(--color-text);
 }
-body[data-theme='light'] .theme-toggle {
-  color: #2d3748;
-  border-color: #cbd5e0;
-}
-body[data-theme='light'] .theme-toggle:hover { background:#edf2f7; }
 </style>

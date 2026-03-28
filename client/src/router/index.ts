@@ -20,6 +20,7 @@ const router = createRouter({
       path: '/users',
       name: 'users',
       component: () => import('../views/UsersView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/login',
@@ -64,6 +65,14 @@ router.beforeEach((to, from, next) => {
     if (!authStore.isAuthenticated) {
       // Rediriger vers la page de connexion
       next('/login')
+      return
+    }
+  }
+
+  if (to.meta.requiresAdmin) {
+    const isAdmin = authStore.user?.login?.toLowerCase() === 'admin'
+    if (!isAdmin) {
+      next('/dashboard')
       return
     }
   }

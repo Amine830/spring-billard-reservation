@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView, RouterLink, useRoute, useRouter } from 'vue-router'
 import { onMounted, computed, onBeforeUnmount } from 'vue'
+import { House, LayoutDashboard, Users, UserRound, Info, LogOut, LogIn, CircleAlert } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useSystemStore } from '@/stores/system'
 import ThemeToggle from '@/components/ThemeToggle.vue'
@@ -29,6 +30,7 @@ onBeforeUnmount(() => {
 })
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
+const isAdmin = computed(() => authStore.user?.login?.toLowerCase() === 'admin')
 const showNav = computed(() => route.name !== 'login')
 
 function isActive(name: string) {
@@ -39,211 +41,204 @@ async function logout() {
   await authStore.logout()
   router.push('/login')
 }
+
+const navItems = computed(() => {
+  const items = [
+    { name: 'home', label: 'Accueil', to: '/', icon: House, public: true },
+    { name: 'dashboard', label: 'Reservations', to: '/dashboard', icon: LayoutDashboard, public: false },
+    { name: 'users', label: 'Utilisateurs', to: '/users', icon: Users, public: false },
+    { name: 'profile', label: 'Profil', to: '/profile', icon: UserRound, public: false },
+    { name: 'about', label: 'A propos', to: '/about', icon: Info, public: true }
+  ]
+
+  return items.filter(item => {
+    if (!item.public && !isAuthenticated.value) return false
+    if (item.name === 'users' && !isAdmin.value) return false
+    return true
+  })
+})
 </script>
 
 <template>
-  <div id="app">
-    <nav v-if="showNav" class="main-nav">
-      <div v-if="systemStore.backendUp === false" class="health-banner">
-        <strong>Serveur indisponible :</strong> tentative de reconnexion... (dernier état {{ systemStore.health?.status || 'DOWN' }})
+  <div id="app" class="app-shell">
+    <header v-if="showNav" class="main-nav">
+      <div v-if="systemStore.backendUp === false" class="health-banner" role="status" aria-live="polite">
+        <CircleAlert :size="16" aria-hidden="true" />
+        <span>Serveur indisponible. Reconnexion en cours. Etat: {{ systemStore.health?.status || 'DOWN' }}</span>
       </div>
-      <div class="nav-inner">
+
+      <div class="app-container nav-inner">
         <div class="nav-left">
-          <RouterLink to="/" class="brand" :class="{ active: isActive('home') }">
-            <img src="/favicon-32x32.png" alt="Logo" class="brand-icon" />
-            <span>Billard‑Book</span>
+          <RouterLink to="/" class="brand" :class="{ active: isActive('home') }" aria-label="Aller a l'accueil">
+            <img src="/favicon-32x32.png" alt="Logo Billard Book" class="brand-icon" />
+            <span>Billard Book</span>
           </RouterLink>
-          <RouterLink to="/" class="nav-link" :class="{ active: isActive('home') }">Accueil</RouterLink>
-          <RouterLink v-if="isAuthenticated" to="/dashboard" class="nav-link" :class="{ active: isActive('dashboard') }">Dashboard</RouterLink>
-          <RouterLink v-if="isAuthenticated" to="/users" class="nav-link" :class="{ active: isActive('users') }">Utilisateurs</RouterLink>
-          <RouterLink v-if="isAuthenticated" to="/profile" class="nav-link" :class="{ active: isActive('profile') }">Profil</RouterLink>
-          <RouterLink to="/about" class="nav-link" :class="{ active: isActive('about') }">À propos</RouterLink>
+
+          <nav class="nav-links" aria-label="Navigation principale">
+            <RouterLink
+              v-for="item in navItems"
+              :key="item.name"
+              :to="item.to"
+              class="nav-link"
+              :class="{ active: isActive(item.name) }"
+            >
+              <component :is="item.icon" :size="16" aria-hidden="true" />
+              <span>{{ item.label }}</span>
+            </RouterLink>
+          </nav>
         </div>
+
         <div class="nav-right">
           <ThemeToggle />
-          <span v-if="isAuthenticated" class="user-label">👤 {{ authStore.user?.login }}</span>
-          <button v-if="isAuthenticated" @click="logout" class="nav-btn logout">Déconnexion</button>
-          <RouterLink v-else to="/login" class="nav-btn login" :class="{ active: isActive('login') }">Connexion</RouterLink>
+          <span v-if="isAuthenticated" class="user-label">{{ authStore.user?.login }}</span>
+          <button v-if="isAuthenticated" @click="logout" class="btn btn-danger nav-action" type="button">
+            <LogOut :size="16" aria-hidden="true" />
+            <span>Quitter</span>
+          </button>
+          <RouterLink v-else to="/login" class="btn btn-primary nav-action" :class="{ active: isActive('login') }">
+            <LogIn :size="16" aria-hidden="true" />
+            <span>Connexion</span>
+          </RouterLink>
         </div>
       </div>
-    </nav>
+    </header>
+
     <main class="app-main">
       <RouterView />
     </main>
   </div>
 </template>
 
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background-color: #f8fafc;
-}
-
-#app {
+<style scoped>
+.app-shell {
   min-height: 100vh;
 }
 
-/* Navigation principale */
 .main-nav {
-  background: #1a202c;
-  color: #edf2f7;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   position: sticky;
   top: 0;
-  z-index: 50;
-}
-.nav-inner { max-width: 1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:0 1rem; height:60px; gap:1.25rem; }
-.nav-left, .nav-right { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
-.brand { font-weight:600; font-size:1.05rem; letter-spacing:.5px; display:inline-flex; align-items:center; gap:0.4rem; }
-.brand-icon { width:32px; height:32px; display:block; }
-.nav-link { text-decoration:none; color:#cbd5e0; font-size:0.9rem; padding:0.4rem 0.65rem; border-radius:6px; transition:background-color .15s, color .15s; }
-.nav-link:hover { color:#fff; background:#2d3748; }
-.nav-link.active { background:#2b6cb0; color:#fff; }
-.nav-btn { border:none; cursor:pointer; font-size:0.85rem; padding:0.45rem 0.9rem; border-radius:6px; font-weight:500; text-decoration:none; }
-.nav-btn.login { background:#3182ce; color:#fff; }
-.nav-btn.login:hover { background:#2b6cb0; }
-.nav-btn.logout { background:#e53e3e; color:#fff; }
-.nav-btn.logout:hover { background:#c53030; }
-.user-label { font-size:0.8rem; color:#e2e8f0; }
-.app-main { padding:1rem 0 2rem; }
-@media (max-width: 640px) {
-  .nav-inner { flex-direction:column; height:auto; padding:0.75rem 1rem 0.9rem; align-items:flex-start; }
-  .nav-right { width:100%; justify-content:flex-end; }
-  .app-main { padding-top:0.5rem; }
+  z-index: 40;
+  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--color-surface) 87%, transparent);
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* Styles globaux pour les formulaires */
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #4299e1;
-}
-
-/* Styles globaux pour les boutons */
-.btn {
-  display: inline-flex;
+.health-banner {
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
+  gap: var(--space-2);
+  background: color-mix(in srgb, var(--color-danger) 80%, black 20%);
+  color: #fff;
+  font-size: 0.8125rem;
+  padding: var(--space-2) var(--space-4);
 }
 
-.btn-primary {
-  background: #4299e1;
-  color: white;
+.nav-inner {
+  min-height: 4.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
 }
 
-.btn-primary:hover {
-  background: #3182ce;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 
-.btn-secondary {
-  background: white;
-  color: #4a5568;
-  border: 2px solid #e2e8f0;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--color-text);
 }
 
-.btn-secondary:hover {
-  background: #f7fafc;
-  border-color: #cbd5e0;
+.brand-icon {
+  width: 2rem;
+  height: 2rem;
 }
 
-.btn-danger {
-  background: #e53e3e;
-  color: white;
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-.btn-danger:hover {
-  background: #c53030;
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text-soft);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: color var(--duration-fast) var(--easing-standard), background-color var(--duration-fast) var(--easing-standard);
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+.nav-link:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-text);
 }
 
-/* Utilitaires */
-.text-center {
-  text-align: center;
+.nav-link.active {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
-.text-left {
-  text-align: left;
+.nav-action {
+  min-height: 2.25rem;
+  padding-inline: var(--space-3);
+  font-size: 0.8125rem;
 }
 
-.text-right {
-  text-align: right;
+.user-label {
+  background: color-mix(in srgb, var(--color-info) 15%, transparent);
+  color: var(--color-info);
+  border: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent);
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.55rem;
 }
 
-.mt-1 { margin-top: 0.25rem; }
-.mt-2 { margin-top: 0.5rem; }
-.mt-3 { margin-top: 0.75rem; }
-.mt-4 { margin-top: 1rem; }
-
-.mb-1 { margin-bottom: 0.25rem; }
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-3 { margin-bottom: 0.75rem; }
-.mb-4 { margin-bottom: 1rem; }
-
-.p-1 { padding: 0.25rem; }
-.p-2 { padding: 0.5rem; }
-.p-3 { padding: 0.75rem; }
-.p-4 { padding: 1rem; }
-
-/* Messages d'erreur/succès */
-.error-message {
-  background: #fed7d7;
-  color: #c53030;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #feb2b2;
-  font-size: 0.9rem;
+.app-main {
+  flex: 1;
 }
 
-.success-message {
-  background: #c6f6d5;
-  color: #22543d;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #9ae6b4;
-  font-size: 0.9rem;
+@media (max-width: 900px) {
+  .nav-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nav-left,
+  .nav-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .nav-links {
+    width: 100%;
+  }
 }
 
-.info-message {
-  background: #bee3f8;
-  color: #2a4365;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #90cdf4;
-  font-size: 0.9rem;
+@media (max-width: 640px) {
+  .nav-link {
+    font-size: 0.8125rem;
+  }
+
+  .user-label {
+    order: 3;
+  }
 }
-</style>
-<style>
-.health-banner { background:#c53030; color:#fff; text-align:center; padding:0.4rem 0.75rem; font-size:0.8rem; }
 </style>

@@ -1,9 +1,9 @@
 <template>
   <div class="modal-overlay" @click="handleOverlayClick">
-    <div class="modal-content" @click.stop>
+    <div class="modal-content" @click.stop role="dialog" aria-modal="true" aria-labelledby="create-reservation-title">
       <div class="modal-header">
-        <h2>Nouvelle réservation</h2>
-        <button @click="$emit('close')" class="close-button">✕</button>
+        <h2 id="create-reservation-title">Nouvelle reservation</h2>
+        <button @click="$emit('close')" class="close-button" type="button" aria-label="Fermer le formulaire de reservation">✕</button>
       </div>
 
       <form @submit.prevent="handleSubmit" class="modal-form">
@@ -65,12 +65,12 @@
           >
             Annuler
           </button>
-          <button 
-            type="submit" 
-            class="submit-button"
+          <button
+            type="submit"
+            class="btn btn-primary submit-button"
             :disabled="loading"
           >
-            {{ loading ? 'Création...' : 'Créer la réservation' }}
+            {{ loading ? 'Creation...' : 'Creer' }}
           </button>
         </div>
       </form>
@@ -190,32 +190,23 @@ function handleOverlayClick() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(2, 6, 23, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .modal-content {
-  background: white;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-.modal-content {
   background: var(--color-surface);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 500px;
+  max-width: 34rem;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-  border:1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
   color: var(--color-text);
 }
 
@@ -223,65 +214,39 @@ function handleOverlayClick() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
+  padding: var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
 
 .modal-header h2 {
   margin: 0;
-  color: #1a202c;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-.modal-header h2 {
-  margin: 0;
+  font-family: var(--font-display);
   color: var(--color-text);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.125rem;
+  font-weight: 700;
 }
 
 .close-button {
   background: none;
   border: none;
-  font-size: 1.5rem;
-  color: #718096;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-.close-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: var(--color-text-soft);
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-.close-button:hover {
-  background: var(--color-bg);
-  color: var(--color-text);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--easing-standard), color var(--duration-fast) var(--easing-standard);
 }
 
 .close-button:hover {
-  background: #f7fafc;
-  color: #4a5568;
+  background: var(--color-surface-2);
+  color: var(--color-text);
 }
 
 .modal-form {
-  padding: 1.5rem;
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
 .form-group {
@@ -293,151 +258,56 @@ function handleOverlayClick() {
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .form-group label {
-  font-weight: 500;
-  color: #4a5568;
-}
-.form-group label {
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--color-text-soft);
 }
 
-.form-input {
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-.form-input {
-  padding: 0.75rem;
-  border: 2px solid var(--color-border);
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  background: var(--color-bg);
-  color: var(--color-text);
-}
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #4299e1;
-}
-
-textarea.form-input {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.error-message {
-  background: #fed7d7;
-  color: #c53030;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #feb2b2;
-  font-size: 0.9rem;
-}
-.error-message {
-  background: #7f1d1d;
-  color: #fecaca;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #991b1b;
-  font-size: 0.9rem;
-}
-
 .modal-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-3);
   justify-content: flex-end;
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-}
-.modal-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding-top: 1rem;
   border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
 }
 
-.cancel-button {
-  background: white;
-  color: #4a5568;
-  border: 2px solid #e2e8f0;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
 .cancel-button {
   background: var(--color-surface);
   color: var(--color-text-soft);
-  border: 2px solid var(--color-border);
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  min-height: 2.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-.cancel-button:hover {
-  background: var(--color-bg);
-  border-color: var(--color-border);
+  transition: background-color var(--duration-fast) var(--easing-standard), color var(--duration-fast) var(--easing-standard);
 }
 
 .cancel-button:hover {
-  background: #f7fafc;
-  border-color: #cbd5e0;
+  background: var(--color-surface-2);
+  color: var(--color-text);
 }
 
 .submit-button {
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-.submit-button {
-  background: var(--color-accent);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-.submit-button:hover:not(:disabled) {
-  background: var(--color-accent-hover);
-}
-
-.submit-button:hover:not(:disabled) {
-  background: #3182ce;
-}
-
-.submit-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  min-width: 7.5rem;
 }
 
 @media (max-width: 600px) {
   .form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-actions {
-    flex-direction: column;
+    flex-direction: column-reverse;
+  }
+
+  .submit-button,
+  .cancel-button {
+    width: 100%;
   }
 }
 </style>

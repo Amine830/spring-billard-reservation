@@ -1,27 +1,31 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <h1 class="login-title">{{ isRegistering ? 'Inscription' : 'Connexion' }}</h1>
-      
-      <form @submit.prevent="handleSubmit" class="login-form">
+  <section class="auth-page">
+    <div class="auth-ambient" aria-hidden="true"></div>
+    <article class="auth-card ui-card" aria-labelledby="auth-title">
+      <header class="auth-header">
+        <h1 id="auth-title" class="auth-title">{{ isRegistering ? 'Creer un compte' : 'Connexion' }}</h1>
+        <p class="auth-subtitle">{{ isRegistering ? 'Rejoignez la plateforme de reservation.' : 'Accedez a vos reservations en cours.' }}</p>
+      </header>
+
+      <form @submit.prevent="handleSubmit" class="auth-form" novalidate>
         <div class="form-group">
-          <label for="login">Login</label>
+          <label for="login">Identifiant</label>
           <input
             id="login"
             v-model="form.login"
             type="text"
             required
             class="form-input"
-            placeholder="Votre login"
+            placeholder="Votre identifiant"
             autocomplete="username"
           />
         </div>
 
         <div v-if="isRegistering" class="form-group">
-          <label for="name">Mot de passe *</label>
+          <label for="passwordCreate">Mot de passe</label>
           <input
-            id="name"
-            v-model="form.name"
+            id="passwordCreate"
+            v-model="form.password"
             type="password"
             required
             class="form-input"
@@ -31,10 +35,10 @@
         </div>
 
         <div class="form-group">
-          <label for="password">{{ isRegistering ? 'Confirmer le mot de passe' : 'Mot de passe' }}</label>
+          <label for="passwordConfirm">{{ isRegistering ? 'Confirmation' : 'Mot de passe' }}</label>
           <input
-            id="password"
-            v-model="form.password"
+            id="passwordConfirm"
+            v-model="form.confirmPassword"
             type="password"
             required
             class="form-input"
@@ -47,25 +51,25 @@
           {{ authStore.error }}
         </div>
 
-        <button 
-          type="submit" 
-          class="submit-button"
+        <button
+          type="submit"
+          class="btn btn-primary submit-button"
           :disabled="authStore.loading"
         >
-          {{ authStore.loading ? 'Chargement...' : (isRegistering ? 'S\'inscrire' : 'Se connecter') }}
+          {{ authStore.loading ? 'Chargement' : (isRegistering ? 'Creer le compte' : 'Se connecter') }}
         </button>
       </form>
 
-      <div class="toggle-mode">
+      <footer class="toggle-mode">
         <p>
-          {{ isRegistering ? 'Déjà un compte ?' : 'Pas encore de compte ?' }}
-          <button @click="toggleMode" type="button" class="toggle-button">
-            {{ isRegistering ? 'Se connecter' : 'S\'inscrire' }}
+          {{ isRegistering ? 'Vous avez deja un compte ?' : 'Nouveau ici ?' }}
+          <button @click="toggleMode" type="button" class="mode-link">
+            {{ isRegistering ? 'Connexion' : 'Creer un compte' }}
           </button>
         </p>
-      </div>
-    </div>
-  </div>
+      </footer>
+    </article>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -80,13 +84,14 @@ const isRegistering = ref(false)
 
 const form = reactive({
   login: '',
-  name: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
 
 function toggleMode() {
   isRegistering.value = !isRegistering.value
-  // Réinitialiser les erreurs quand on change de mode
+  form.password = ''
+  form.confirmPassword = ''
   authStore.error = null
 }
 
@@ -94,172 +99,150 @@ async function handleSubmit() {
   let success = false
   
   if (isRegistering.value) {
-    // Validation pour l'inscription
-    if (form.name !== form.password) {
-      authStore.error = 'Le nom et sa confirmation doivent être identiques'
+    if (form.password !== form.confirmPassword) {
+      authStore.error = 'La confirmation ne correspond pas au mot de passe.'
       return
     }
     
     success = await authStore.register({
       login: form.login,
-      name: form.name, // Le nom sera utilisé à la fois comme nom d'affichage et mot de passe
-      password: form.name // On passe le nom comme password aussi pour cohérence
+      name: form.password,
+      password: form.password
     })
   } else {
-    // Pour la connexion, le password va dans le champ "name" de l'API
     success = await authStore.login({
       login: form.login,
-      name: form.password // Le password devient le "name" pour l'API
+      name: form.confirmPassword
     })
   }
   
   if (success) {
-    // Rediriger vers le dashboard après connexion/inscription réussie
     router.push('/dashboard')
   }
 }
 </script>
 
 <style scoped>
-.login-container {
+.auth-page {
   min-height: 100vh;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-accent) 0%, #764ba2 100%);
-  padding: 1rem;
+  padding: var(--space-6);
 }
 
-.login-card {
-  background: var(--color-surface);
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: var(--shadow-elev);
-  width: 100%;
-  max-width: 420px; /* légère marge plus large */
-  margin: 0 auto;
+.auth-ambient {
   position: relative;
-  border:1px solid var(--color-border);
+  width: min(920px, 100%);
+  min-height: 560px;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--color-primary) 72%, #061626), #082035),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15), transparent 45%);
+  box-shadow: var(--shadow-lg);
 }
 
-.login-title {
-  text-align: center;
-  margin-bottom: 2rem;
+.auth-card {
+  position: absolute;
+  width: min(430px, calc(100% - 2 * var(--space-8)));
+  right: clamp(1rem, 8vw, 4rem);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: var(--space-8);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.auth-header {
+  margin-bottom: var(--space-6);
+}
+
+.auth-title {
+  margin: 0;
+  font-family: var(--font-display);
   color: var(--color-text);
   font-size: 1.8rem;
-  font-weight: 600;
+  font-weight: 800;
 }
 
-.login-form {
+.auth-subtitle {
+  color: var(--color-text-soft);
+  margin: var(--space-2) 0 0;
+  font-size: 0.9375rem;
+}
+
+.auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .form-group label {
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--color-text-soft);
 }
 
-.form-help {
-  color: #718096;
-  font-size: 0.8rem;
-  font-style: italic;
-}
-
-.form-input {
-  padding: 0.75rem;
-  border: 2px solid var(--color-border);
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  background: var(--color-bg);
-  color: var(--color-text);
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-}
-
-.error-message {
-  background: #7f1d1d;
-  color: #fecaca;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid #991b1b;
-  font-size: 0.9rem;
-}
-
 .submit-button {
-  background: linear-gradient(135deg, var(--color-accent) 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 0.875rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.submit-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.submit-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  width: 100%;
 }
 
 .toggle-mode {
   text-align: center;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
   border-top: 1px solid var(--color-border);
 }
 
 .toggle-mode p {
   color: var(--color-text-soft);
   margin: 0;
+  font-size: 0.875rem;
 }
 
-.toggle-button {
+.mode-link {
   background: none;
   border: none;
-  color: var(--color-accent);
-  font-weight: 500;
+  color: var(--color-primary);
+  font-weight: 700;
   cursor: pointer;
-  text-decoration: underline;
 }
 
-.toggle-button:hover {
-  color: var(--color-accent-hover);
+.mode-link:hover {
+  color: var(--color-primary-hover);
 }
 
-/* Grande largeur : garder le centrage et éviter l'effet "collé à gauche" si parent extérieur change */
-@media (min-width: 1024px) {
-  .login-container {
-    justify-content: center;
-    padding: 2rem;
+@media (max-width: 960px) {
+  .auth-page {
+    padding: var(--space-4);
   }
-  .login-card {
-    margin-left: auto;
-    margin-right: auto;
+
+  .auth-ambient {
+    min-height: 680px;
+  }
+
+  .auth-card {
+    left: 50%;
+    right: auto;
+    width: min(440px, calc(100% - 2 * var(--space-4)));
+    transform: translate(-50%, -50%);
   }
 }
 
-/* Ultra large écrans : possibilité d'ajouter un léger scaling pour ne pas paraître minuscule */
-@media (min-width: 1600px) {
-  .login-card {
-    transform: scale(1.05);
+@media (max-width: 520px) {
+  .auth-ambient {
+    min-height: 620px;
+  }
+
+  .auth-card {
+    padding: var(--space-6);
   }
 }
 </style>

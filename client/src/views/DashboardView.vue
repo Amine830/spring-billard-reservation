@@ -1,192 +1,199 @@
 <template>
-  <div class="dashboard">
-    <main class="dashboard-main">
-      <div class="dashboard-content">
-        <!-- Section Actions rapides -->
-        <div class="quick-actions">
-          <div class="page-header">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-sub">Gestion rapide de vos réservations</p>
-          </div>
-          <div class="action-buttons">
-            <button @click="showCreateModal = true" class="action-button primary">
-              ➕ Nouvelle réservation
-            </button>
-            <router-link to="/users" class="action-button">
-              👥 Voir les utilisateurs
-            </router-link>
-            <button @click="refreshReservations" class="action-button">
-              🔄 Actualiser
-            </button>
-          </div>
+  <section class="dashboard-page">
+    <div class="app-container dashboard-layout">
+      <header class="dashboard-header ui-card">
+        <div>
+          <p class="eyebrow">Espace reservations</p>
+          <h1>Tableau de bord</h1>
+          <p class="subtitle">Consultez les parties en cours et gelez vos inscriptions rapidement.</p>
         </div>
 
-        <!-- Section Réservations actives -->
-        <div class="reservations-section">
-          <h2>Réservations actives</h2>
-          
-          <div v-if="reservationStore.loading" class="loading">
-            Chargement des réservations...
-          </div>
-          
-          <div v-else-if="reservationStore.error" class="error">
-            {{ reservationStore.error }}
-            <button @click="refreshReservations" class="retry-button">
-              Réessayer
-            </button>
-          </div>
-          
-          <div v-else-if="reservationStore.activeReservations.length === 0" class="empty-state">
-            Aucune réservation active
-          </div>
-          
-          <div v-else class="reservations-grid">
-            <div 
-              v-for="reservation in reservationStore.activeReservations" 
-              :key="reservation.id"
-              class="reservation-card"
-            >
-              <div class="reservation-header">
-                <h3>{{ reservation.title }}</h3>
-                <span class="table-id">Table {{ reservation.tableId }}</span>
-                <span v-if="isFull(reservation) && !isPast(reservation.endTime)" class="full-badge" title="Réservation complète">🈵 Complet</span>
-              </div>
-              
-              <div class="reservation-details">
-                <div class="time-info">
-                  <span class="start-time">
-                    🕐 {{ formatDateTime(reservation.startTime) }}
-                  </span>
-                  <span class="duration">
-                    ⏱️ {{ reservation.duration }}min
-                  </span>
-                </div>
-                <div class="creator">
-                  👤 Créé par: {{ reservation.ownerId }}
-                </div>
-                <div class="players">
-                  👥 Joueurs ({{ reservation.players.length }}/4):
-                  {{ reservation.players.length > 0 ? reservation.players.join(', ') : 'Aucun joueur inscrit' }}
-                </div>
-              </div>
-              
-              <div class="reservation-actions">
-                <template v-if="!isAlreadyRegistered(reservation)">
-                  <button 
-                    @click="handleRegister(reservation.id)"
-                    class="action-btn register"
-                    :disabled="reservationStore.loading || isPast(reservation.endTime) || isFull(reservation)"
-                    :title="isPast(reservation.endTime) ? 'Réservation terminée' : isFull(reservation) ? 'Réservation complète' : ''"
-                  >
-                    S'inscrire
-                  </button>
-                </template>
-                <template v-else>
-                  <button 
-                    @click="handleUnregister(reservation.id)"
-                    class="action-btn unregister"
-                    :disabled="reservationStore.loading || isPast(reservation.endTime)"
-                    :title="isPast(reservation.endTime) ? 'Réservation terminée' : 'Se désinscrire de la réservation'"
-                  >
-                    Se désinscrire
-                  </button>
-                </template>
-                <button 
-                  class="action-btn view"
-                  @click="toggleComments(reservation.id)"
-                >
-                  {{ showComments[reservation.id] ? 'Masquer commentaires' : 'Commentaires' }} ({{ reservation.comments.length }})
-                </button>
-                <button 
-                  @click="viewReservation(reservation.id)"
-                  class="action-btn view"
-                >
-                  Voir détails
-                </button>
-              </div>
+        <div class="header-meta">
+          <span class="ui-badge status-info">
+            <ShieldCheck :size="14" aria-hidden="true" />
+            {{ roleLabel }}
+          </span>
+          <span class="ui-badge status-success">
+            <Clock3 :size="14" aria-hidden="true" />
+            {{ reservationStore.activeReservations.length }} actives
+          </span>
+        </div>
+      </header>
 
-              <div v-if="showComments[reservation.id]" class="comments-block">
-                <div v-if="reservation.comments.length === 0" class="no-comments">Aucun commentaire.</div>
-                <ul v-else class="comments-list">
-                  <li v-for="(c, idx) in reservation.comments" :key="idx" class="comment-item">
-                    <strong>{{ c.authorId }}</strong>: {{ c.content }}
-                  </li>
-                </ul>
-                <form class="comment-form" @submit.prevent="submitComment(reservation.id)">
-                  <input
-                    type="text"
-                    class="comment-input"
-                    v-model="commentInputs[reservation.id]"
-                    :placeholder="'Votre commentaire...'"
-                    :disabled="loadingComment[reservation.id] || isPast(reservation.endTime)"
-                  />
-                  <button 
-                    type="submit" 
-                    class="comment-submit"
-                    :disabled="loadingComment[reservation.id] || !commentInputs[reservation.id] || isPast(reservation.endTime)"
-                  >
-                    {{ loadingComment[reservation.id] ? 'Envoi...' : 'Envoyer' }}
-                  </button>
-                </form>
+      <section class="quick-actions ui-card" aria-label="Actions rapides">
+        <button type="button" class="btn btn-primary" @click="showCreateModal = true">
+          <Plus :size="16" aria-hidden="true" />
+          <span>Creer</span>
+        </button>
+
+        <button type="button" class="btn btn-secondary" @click="refreshReservations" :disabled="reservationStore.loading">
+          <RefreshCw :size="16" aria-hidden="true" />
+          <span>Actualiser</span>
+        </button>
+
+        <router-link v-if="isAdmin" to="/users" class="btn btn-secondary">
+          <Users :size="16" aria-hidden="true" />
+          <span>Utilisateurs</span>
+        </router-link>
+      </section>
+
+      <section class="reservations-block ui-card" aria-labelledby="active-reservations-title">
+        <div class="section-head">
+          <h2 id="active-reservations-title">Reservations actives</h2>
+          <span class="count-pill">{{ reservationStore.activeReservations.length }}</span>
+        </div>
+
+        <p v-if="reservationStore.loading" class="state-msg">Chargement des reservations...</p>
+
+        <div v-else-if="reservationStore.error" class="error-message">
+          <p>{{ reservationStore.error }}</p>
+          <button type="button" class="btn btn-secondary" @click="refreshReservations">Reessayer</button>
+        </div>
+
+        <p v-else-if="reservationStore.activeReservations.length === 0" class="state-msg">Aucune reservation active.</p>
+
+        <div v-else class="reservations-grid">
+          <article v-for="reservation in reservationStore.activeReservations" :key="reservation.id" class="reservation-card ui-card">
+            <header class="card-head">
+              <h3>{{ reservation.title }}</h3>
+              <div class="head-badges">
+                <span class="ui-badge status-info">Table {{ reservation.tableId }}</span>
+                <span v-if="isFull(reservation) && !isPast(reservation.endTime)" class="ui-badge status-danger">Complet</span>
               </div>
+            </header>
+
+            <dl class="reservation-metadata">
+              <div>
+                <dt>Debut</dt>
+                <dd>{{ formatDateTime(reservation.startTime) }}</dd>
+              </div>
+              <div>
+                <dt>Duree</dt>
+                <dd>{{ reservation.duration }} min</dd>
+              </div>
+              <div>
+                <dt>Proprietaire</dt>
+                <dd>{{ reservation.ownerId }}</dd>
+              </div>
+              <div>
+                <dt>Joueurs</dt>
+                <dd>{{ reservation.players.length }}/4</dd>
+              </div>
+            </dl>
+
+            <p class="players-line">
+              {{ reservation.players.length > 0 ? reservation.players.join(', ') : 'Aucun joueur inscrit' }}
+            </p>
+
+            <div class="reservation-actions">
+              <button
+                v-if="!isAlreadyRegistered(reservation)"
+                type="button"
+                class="btn btn-primary"
+                @click="handleRegister(reservation.id)"
+                :disabled="reservationStore.loading || isPast(reservation.endTime) || isFull(reservation)"
+              >
+                Rejoindre
+              </button>
+
+              <button
+                v-else
+                type="button"
+                class="btn btn-secondary"
+                @click="handleUnregister(reservation.id)"
+                :disabled="reservationStore.loading || isPast(reservation.endTime)"
+              >
+                Quitter
+              </button>
+
+              <button type="button" class="btn btn-secondary" @click="toggleComments(reservation.id)">
+                {{ showComments[reservation.id] ? 'Fermer notes' : 'Notes' }}
+              </button>
+
+              <button type="button" class="btn btn-secondary" @click="viewReservation(reservation.id)">
+                Details
+              </button>
             </div>
-          </div>
+
+            <section v-if="showComments[reservation.id]" class="comments-block" :aria-label="`Notes pour la reservation ${reservation.id}`">
+              <p v-if="reservation.comments.length === 0" class="notes-empty">Aucune note.</p>
+
+              <ul v-else class="notes-list">
+                <li v-for="(comment, idx) in reservation.comments" :key="`${reservation.id}-${idx}`">
+                  <strong>{{ comment.authorId }}</strong>
+                  <span>{{ comment.content }}</span>
+                </li>
+              </ul>
+
+              <form class="note-form" @submit.prevent="submitComment(reservation.id)">
+                <label class="sr-only" :for="`note-${reservation.id}`">Ajouter une note</label>
+                <input
+                  :id="`note-${reservation.id}`"
+                  v-model="commentInputs[reservation.id]"
+                  type="text"
+                  class="form-input"
+                  placeholder="Ajouter une note"
+                  :disabled="loadingComment[reservation.id] || isPast(reservation.endTime)"
+                />
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  :disabled="loadingComment[reservation.id] || !commentInputs[reservation.id] || isPast(reservation.endTime)"
+                >
+                  {{ loadingComment[reservation.id] ? 'Envoi' : 'Publier' }}
+                </button>
+              </form>
+            </section>
+          </article>
+        </div>
+      </section>
+
+      <section class="reservations-block ui-card" aria-labelledby="completed-reservations-title">
+        <div class="section-head">
+          <h2 id="completed-reservations-title">Reservations terminees</h2>
+          <span class="count-pill">{{ reservationStore.completedReservations.length }}</span>
         </div>
 
-        <!-- Section Réservations terminées -->
-        <div class="reservations-section">
-          <h2>Réservations terminées</h2>
-          
-          <div v-if="reservationStore.completedReservations.length === 0" class="empty-state">
-            Aucune réservation terminée
-          </div>
-          
-          <div v-else class="reservations-grid">
-            <div 
-              v-for="reservation in reservationStore.completedReservations" 
-              :key="reservation.id"
-              class="reservation-card completed"
-            >
-              <div class="reservation-header">
-                <h3>{{ reservation.title }}</h3>
-                <span class="table-id">Table {{ reservation.tableId }}</span>
-                <span class="completed-badge">✅ Terminé</span>
-              </div>
-              
-              <div class="reservation-details">
-                <div class="time-info">
-                  <span class="start-time">
-                    🕐 {{ formatDateTime(reservation.startTime) }}
-                  </span>
-                  <span class="duration">
-                    ⏱️ {{ reservation.duration }}min
-                  </span>
-                </div>
-                <div class="creator">
-                  👤 Créé par: {{ reservation.ownerId }}
-                </div>
-                <div class="players">
-                  👥 Inscrits: {{ reservation.players.length }}/4
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+        <p v-if="reservationStore.completedReservations.length === 0" class="state-msg">Aucune reservation terminee.</p>
 
-    <!-- Modal de création de réservation -->
-    <CreateReservationModal 
-      v-if="showCreateModal"
-      @close="showCreateModal = false"
-      @created="handleReservationCreated"
-    />
-  </div>
+        <div v-else class="reservations-grid">
+          <article v-for="reservation in reservationStore.completedReservations" :key="reservation.id" class="reservation-card ui-card done-card">
+            <header class="card-head">
+              <h3>{{ reservation.title }}</h3>
+              <span class="ui-badge status-success">Terminee</span>
+            </header>
+
+            <dl class="reservation-metadata">
+              <div>
+                <dt>Debut</dt>
+                <dd>{{ formatDateTime(reservation.startTime) }}</dd>
+              </div>
+              <div>
+                <dt>Duree</dt>
+                <dd>{{ reservation.duration }} min</dd>
+              </div>
+              <div>
+                <dt>Table</dt>
+                <dd>{{ reservation.tableId }}</dd>
+              </div>
+              <div>
+                <dt>Participants</dt>
+                <dd>{{ reservation.players.length }}/4</dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <CreateReservationModal v-if="showCreateModal" @close="showCreateModal = false" @created="handleReservationCreated" />
+  </section>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Clock3, Plus, RefreshCw, ShieldCheck, Users } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useReservationStore } from '@/stores/reservations'
 import CreateReservationModal from '@/components/CreateReservationModal.vue'
@@ -197,37 +204,35 @@ const authStore = useAuthStore()
 const reservationStore = useReservationStore()
 
 const showCreateModal = ref(false)
-// Etats pour les commentaires (réactifs)
 const showComments = reactive<Record<string, boolean>>({})
 const commentInputs = reactive<Record<string, string>>({})
 const loadingComment = reactive<Record<string, boolean>>({})
 
+const isAdmin = computed(() => authStore.user?.login?.toLowerCase() === 'admin')
+const roleLabel = computed(() => (isAdmin.value ? 'Admin' : 'Membre'))
+
 onMounted(async () => {
-  // Vérifier si l'utilisateur est connecté
   if (!authStore.isAuthenticated) {
     router.push('/login')
     return
   }
-  
-  // Charger les réservations
+
   await refreshReservations()
 })
 
 async function refreshReservations() {
   await reservationStore.fetchReservations()
-  // Ouvrir automatiquement la zone commentaires si déjà existants
-  for (const r of reservationStore.activeReservations) {
-    if (r.comments && r.comments.length > 0 && showComments[r.id] === undefined) {
-      showComments[r.id] = true
+
+  for (const reservation of reservationStore.activeReservations) {
+    if (reservation.comments.length > 0 && showComments[reservation.id] === undefined) {
+      showComments[reservation.id] = true
     }
   }
 }
 
-
 async function handleRegister(reservationId: string) {
   const success = await reservationStore.registerToReservation(reservationId)
   if (success) {
-    // Actualiser les réservations pour refléter les changements
     await refreshReservations()
   }
 }
@@ -263,16 +268,14 @@ function isPast(endTime: string): boolean {
   return new Date(endTime) <= new Date()
 }
 
-function isFull(res: ReservationUI): boolean {
-  // Max 4 joueurs selon le serveur
-  return (res.players?.length || 0) >= 4
+function isFull(reservation: ReservationUI): boolean {
+  return reservation.players.length >= 4
 }
 
-function isAlreadyRegistered(res: ReservationUI): boolean {
-  const me = authStore.user?.login
-  if (!me) return false
-  // players contient les logins extraits des liens users/{login}
-  return res.players.includes(me)
+function isAlreadyRegistered(reservation: ReservationUI): boolean {
+  const currentLogin = authStore.user?.login
+  if (!currentLogin) return false
+  return reservation.players.includes(currentLogin)
 }
 
 function toggleComments(reservationId: string) {
@@ -280,16 +283,16 @@ function toggleComments(reservationId: string) {
 }
 
 async function submitComment(reservationId: string) {
-  const raw = commentInputs[reservationId]
-  const content = (raw || '').trim()
+  const content = (commentInputs[reservationId] || '').trim()
   if (!content) return
+
   try {
     loadingComment[reservationId] = true
     const ok = await reservationStore.addComment(reservationId, { content })
     if (ok) {
       commentInputs[reservationId] = ''
-      await refreshReservations()
       showComments[reservationId] = true
+      await refreshReservations()
     }
   } finally {
     loadingComment[reservationId] = false
@@ -298,335 +301,238 @@ async function submitComment(reservationId: string) {
 </script>
 
 <style scoped>
-.dashboard {
+.dashboard-page {
   min-height: 100vh;
-  background: var(--color-bg);
-  color: var(--color-text);
+  padding: var(--space-8) 0 var(--space-10);
 }
 
-/* En-tête de page interne */
-.page-header { display:flex; flex-direction:column; gap:0.25rem; margin-bottom:1rem; }
-.page-title { margin:0; font-size:1.4rem; color: var(--color-text); }
-.page-sub { margin:0; font-size:0.9rem; color: var(--color-text-soft); }
-
-.dashboard-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+.dashboard-layout {
+  display: grid;
+  gap: var(--space-6);
 }
 
-.dashboard-content {
+.dashboard-header {
+  padding: var(--space-6);
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  justify-content: space-between;
+  gap: var(--space-6);
+  align-items: flex-start;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-soft);
+  font-weight: 700;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.8vw, 1.9rem);
+}
+
+.subtitle {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-soft);
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .quick-actions {
-  background: var(--color-surface);
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: var(--shadow-elev);
-  border:1px solid var(--color-border);
-}
-
-.quick-actions h2 {
-  margin: 0 0 1rem 0;
-  color: var(--color-text);
-  font-size: 1.25rem;
-}
-
-.action-buttons {
+  padding: var(--space-4);
   display: flex;
-  gap: 1rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
-.action-button {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-text-soft);
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
+.reservations-block {
+  padding: var(--space-5);
 }
 
-.action-button.primary {
-  background: var(--color-accent);
-  color: #fff;
-  border-color: var(--color-accent);
-}
-
-.action-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.reservations-section {
-  background: var(--color-surface);
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: var(--shadow-elev);
-  border:1px solid var(--color-border);
-}
-
-.reservations-section h2 {
-  margin: 0 0 1.5rem 0;
-  color: var(--color-text);
-  font-size: 1.25rem;
-}
-
-.loading, .error, .empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: var(--color-text-soft);
-}
-
-.error {
-  color: var(--color-danger);
-}
-
-.retry-button {
-  margin-left: 1rem;
-  background: var(--color-accent);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* Layout cartes : passage à Flex pour éviter les colonnes fantômes de auto-fill */
-.reservations-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  align-items: stretch;
-}
-
-/* Carte avec largeur fixe pour remplir une ligne avant de retourner à la suivante */
-.reservations-grid .reservation-card {
-  flex: 0 0 350px; /* largeur fixe (ligne prend autant de cartes que possible) */
-  max-width: 350px;
-}
-
-/* Responsive : sur petits écrans, on laisse la carte prendre toute la largeur */
-@media (max-width: 600px) {
-  .reservations-grid .reservation-card {
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
-}
-
-.reservation-card {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 1.5rem;
-  background: var(--color-surface);
-  transition: box-shadow 0.2s ease;
-}
-
-.reservation-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.reservation-card.completed {
-  opacity: 0.85;
-  border-color: #68d391;
-}
-
-.action-btn.unregister {
-  background: #f6ad55;
-  border: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  cursor: pointer;
-  color: #1a202c;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-.action-btn.unregister:hover:not(:disabled) {
-  background: #ed8936;
-  color: #fff;
-}
-
-.comments-block {
-  margin-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-  padding-top: 1rem;
-}
-.comments-list {
-  list-style: none;
-  margin: 0 0 0.75rem 0;
-  padding: 0;
-  max-height: 160px;
-  overflow-y: auto;
-  font-size: 0.875rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-.comment-item {
-  background: var(--color-bg);
-  padding: 0.5rem 0.6rem;
-  border-radius: 4px;
-  line-height: 1.2;
-}
-.comment-form {
-  display: flex;
-  gap: 0.5rem;
-}
-.comment-input {
-  flex: 1;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.5rem 0.6rem;
-  font-size: 0.85rem;
-  background: var(--color-surface);
-  color: var(--color-text);
-}
-.comment-input:disabled {
-  background: var(--color-bg);
-}
-.comment-submit {
-  background: var(--color-accent);
-  border: none;
-  color: #fff;
-  padding: 0.5rem 0.9rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.comment-submit:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-}
-.no-comments {
-  font-size: 0.75rem;
-  color: var(--color-text-soft);
-  margin-bottom: 0.5rem;
-}
-
-.reservation-header {
+.section-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  margin-bottom: var(--space-5);
 }
 
-.reservation-header h3 {
+.section-head h2 {
   margin: 0;
-  color: var(--color-text);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
-.table-id {
-  background: #edf2f7;
-  color: #4a5568;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.completed-badge {
-  background: #c6f6d5;
-  color: #22543d;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.full-badge {
-  background: #fed7d7;
-  color: #9b2c2c;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-
-.reservation-details {
-  margin-bottom: 1rem;
-}
-
-.description {
+.count-pill {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
   color: var(--color-text-soft);
-  margin: 0 0 0.75rem 0;
+  font-weight: 700;
 }
 
-.time-info {
+.state-msg {
+  margin: 0;
+  color: var(--color-text-soft);
+}
+
+.reservations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.reservation-card {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.card-head {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
 }
 
-.start-time, .duration, .creator, .players {
+.card-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.head-badges {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.reservation-metadata {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.reservation-metadata div {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.reservation-metadata dt {
+  font-size: 0.72rem;
   color: var(--color-text-soft);
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reservation-metadata dd {
+  margin: var(--space-1) 0 0;
+  font-size: 0.87rem;
+  font-weight: 600;
+}
+
+.players-line {
+  margin: var(--space-3) 0;
+  color: var(--color-text-soft);
+  font-size: 0.87rem;
 }
 
 .reservation-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
-.action-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+.comments-block {
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
 }
 
-.action-btn.register {
-  background: #48bb78;
-  color: white;
+.notes-empty {
+  color: var(--color-text-soft);
+  margin: 0 0 var(--space-2);
+  font-size: 0.85rem;
 }
 
-.action-btn.register:hover {
-  background: #38a169;
+.notes-list {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
 }
 
-.action-btn.view {
-  background: #4299e1;
-  color: white;
+.notes-list li {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.85rem;
+  display: grid;
+  gap: var(--space-1);
 }
 
-.action-btn.view:hover {
-  background: #3182ce;
+.notes-list strong {
+  font-size: 0.75rem;
+  color: var(--color-text-soft);
 }
 
-.action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.note-form {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
 }
 
-@media (max-width: 768px) {
-  .header-content {
+.note-form .form-input {
+  flex: 1;
+}
+
+.done-card {
+  opacity: 0.9;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 900px) {
+  .dashboard-page {
+    padding-top: var(--space-6);
+  }
+
+  .dashboard-header {
     flex-direction: column;
-    gap: 1rem;
-    text-align: center;
   }
-  
-  .reservations-grid {
+}
+
+@media (max-width: 640px) {
+  .note-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reservation-metadata {
     grid-template-columns: 1fr;
-  }
-  
-  .action-buttons {
-    justify-content: center;
   }
 }
 </style>

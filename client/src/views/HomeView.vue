@@ -1,334 +1,312 @@
 <template>
-  <div class="home">
+  <section class="home-page">
     <HeroCarousel>
       <div class="hero-overlay-content">
-        <h1 class="hero-title">Billard-Book</h1>
-        <p class="hero-subtitle">Votre plateforme de réservation de tables de billard</p>
-        <p class="hero-description">Réservez facilement une table, rejoignez des parties ou organisez vos propres tournois.</p>
+        <p class="hero-kicker">Application de reservation</p>
+        <h1 class="hero-title">Billard Book</h1>
+        <p class="hero-description">
+          Organisez vos parties, trouvez des joueurs disponibles et gardez un suivi propre de chaque reservation.
+        </p>
         <div class="hero-actions">
-          <router-link v-if="!authStore.isAuthenticated" to="/login" class="btn btn-primary btn-large">Se connecter</router-link>
-          <router-link v-else to="/dashboard" class="btn btn-primary btn-large">Accéder au Dashboard</router-link>
+          <router-link v-if="!authStore.isAuthenticated" to="/login" class="btn btn-primary btn-large">
+            Se connecter
+          </router-link>
+          <router-link v-else to="/dashboard" class="btn btn-primary btn-large">
+            Ouvrir les reservations
+          </router-link>
+          <router-link to="/about" class="btn btn-secondary btn-large">
+            En savoir plus
+          </router-link>
         </div>
       </div>
     </HeroCarousel>
 
-    <section class="features">
-      <div class="container">
-        <h2 class="section-title">Pourquoi choisir Billard-Book ?</h2>
-        
+    <div class="app-container home-sections">
+      <section class="ui-card panel">
+        <header class="panel-header">
+          <h2>Pourquoi utiliser Billard Book</h2>
+          <p>Un flux simple, du choix du creneau a la participation des joueurs.</p>
+        </header>
+
         <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">📅</div>
-            <h3>Réservation simple</h3>
-            <p>Réservez votre table en quelques clics avec notre interface intuitive.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">👥</div>
-            <h3>Rejoindre des parties</h3>
-            <p>Trouvez d'autres joueurs et rejoignez des parties organisées par la communauté.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">🏆</div>
-            <h3>Organiser des tournois</h3>
-            <p>Créez vos propres événements et gérez les participants facilement.</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">💬</div>
-            <h3>Communauté active</h3>
-            <p>Échangez avec d'autres passionnés et partagez vos expériences.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+          <article class="feature-card">
+            <span class="icon-wrap" aria-hidden="true"><CalendarClock :size="20" /></span>
+            <h3>Planning clair</h3>
+            <p>Visualisez rapidement les reservations confirmees et les places restantes.</p>
+          </article>
 
-    <section class="how-it-works">
-      <div class="container">
-        <h2 class="section-title">Comment ça marche ?</h2>
-        
-        <div class="steps">
-          <div class="step">
-            <div class="step-number">1</div>
-            <h3>Créez votre compte</h3>
-            <p>Inscrivez-vous gratuitement en quelques secondes</p>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">2</div>
-            <h3>Choisissez votre table</h3>
-            <p>Sélectionnez la table et l'horaire qui vous conviennent</p>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">3</div>
-            <h3>Jouez !</h3>
-            <p>Profitez de votre partie de billard</p>
-          </div>
-        </div>
-      </div>
-    </section>
+          <article class="feature-card">
+            <span class="icon-wrap" aria-hidden="true"><UsersRound :size="20" /></span>
+            <h3>Participation rapide</h3>
+            <p>Rejoignez une partie ouverte ou creez la votre avec des regles explicites.</p>
+          </article>
 
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-section">
-            <h4>Billard-Book</h4>
-            <p>La référence pour vos réservations de billard</p>
-          </div>
-          
-          <div class="footer-section">
-            <h4>Navigation</h4>
-            <ul>
-              <li><router-link to="/">Accueil</router-link></li>
-              <li><router-link to="/users">Utilisateurs</router-link></li>
-              <li><router-link to="/about">À propos</router-link></li>
-              <li v-if="!authStore.isAuthenticated"><router-link to="/login">Connexion</router-link></li>
-              <li v-else><router-link to="/dashboard">Dashboard</router-link></li>
-            </ul>
-          </div>
-          
-          <div class="footer-section">
-            <h4>Contact</h4>
-            <p>📧 amine.nedjar4716@gmail.com </p>
-          </div>
+          <article class="feature-card">
+            <span class="icon-wrap" aria-hidden="true"><Trophy :size="20" /></span>
+            <h3>Sessions organisees</h3>
+            <p>Gerez les horaires et capacites pour eviter les conflits et doublons.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="icon-wrap" aria-hidden="true"><MessageSquareText :size="20" /></span>
+            <h3>Communication utile</h3>
+            <p>Ajoutez des commentaires contextuels pour preparer la session en avance.</p>
+          </article>
         </div>
-        
-        <div class="footer-bottom">
-          <p>&copy; 2025 Billard-Book. Tous droits réservés.</p>
+      </section>
+
+      <section class="ui-card panel">
+        <header class="panel-header">
+          <h2>Demarrage en 3 etapes</h2>
+          <p>Le parcours principal reste court et lisible sur desktop comme sur mobile.</p>
+        </header>
+
+        <ol class="steps-grid">
+          <li class="step-card">
+            <span class="step-number">1</span>
+            <h3>Connectez votre compte</h3>
+            <p>Authentifiez-vous pour acceder a votre espace de reservation.</p>
+          </li>
+          <li class="step-card">
+            <span class="step-number">2</span>
+            <h3>Choisissez un creneau</h3>
+            <p>Selectionnez une reservation existante ou creez une nouvelle session.</p>
+          </li>
+          <li class="step-card">
+            <span class="step-number">3</span>
+            <h3>Invitez et jouez</h3>
+            <p>Ajoutez les joueurs, laissez une note pratique, puis lancez la partie.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="ui-card panel quick-links-panel">
+        <header class="panel-header">
+          <h2>Acces rapide</h2>
+          <p>Raccourcis adaptes selon votre session et votre role.</p>
+        </header>
+
+        <div class="quick-links">
+          <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="btn btn-primary">
+            Aller au dashboard
+          </router-link>
+          <router-link v-else to="/login" class="btn btn-primary">
+            Ouvrir la connexion
+          </router-link>
+          <router-link to="/profile" v-if="authStore.isAuthenticated" class="btn btn-secondary">
+            Mon profil
+          </router-link>
+          <router-link to="/users" v-if="isAdmin" class="btn btn-secondary">
+            Gestion utilisateurs
+          </router-link>
         </div>
-      </div>
-    </footer>
-  </div>
+      </section>
+    </div>
+  </section>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { CalendarClock, UsersRound, Trophy, MessageSquareText } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import HeroCarousel from '@/components/HeroCarousel.vue'
 
 const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.user?.login?.toLowerCase() === 'admin')
 </script>
 
 <style scoped>
-.home {
+.home-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  gap: var(--space-8);
+  padding-bottom: var(--space-10);
 }
 
-/* Hero carousel overlay content */
 .hero-overlay-content {
-  max-width: 900px;
+  max-width: 860px;
   margin: 0 auto;
   pointer-events: auto;
-  padding: 0 1rem;
+  padding: 0 var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.hero-kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: color-mix(in srgb, #ffffff 90%, transparent);
 }
 
 .hero-title {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.hero-subtitle {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  opacity: 0.9;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 5vw, 3.65rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-shadow: 0 10px 36px rgba(0, 0, 0, 0.4);
 }
 
 .hero-description {
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
-  opacity: 0.8;
-  line-height: 1.6;
+  margin: 0;
+  max-width: 60ch;
+  font-size: clamp(1rem, 1.7vw, 1.15rem);
+  line-height: 1.65;
+  color: color-mix(in srgb, #ffffff 88%, transparent);
 }
 
 .hero-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-3);
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .btn-large {
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  min-height: 2.8rem;
+  padding-inline: var(--space-6);
 }
 
-.features {
-  padding: 4rem 1rem;
-  background: var(--color-surface);
-  color: var(--color-text);
-  border-top:1px solid var(--color-border);
-  border-bottom:1px solid var(--color-border);
+.home-sections {
+  display: grid;
+  gap: var(--space-5);
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
+.panel {
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
 }
 
-.section-title {
-  text-align: center;
-  font-size: 2.5rem;
-  color: var(--color-text);
-  margin-bottom: 3rem;
-  font-weight: 600;
+.panel-header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
+}
+
+.panel-header p {
+  margin: 0;
+  color: var(--color-text-soft);
 }
 
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-4);
 }
 
 .feature-card {
-  text-align: center;
-  padding: 2rem;
-  border-radius: 12px;
-  background: var(--color-bg);
+  background: var(--color-surface-2);
   border: 1px solid var(--color-border);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
-
-.feature-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
 }
 
 .feature-card h3 {
-  color: var(--color-text);
-  margin-bottom: 1rem;
-  font-size: 1.25rem;
+  margin: 0;
+  font-size: 1rem;
 }
 
 .feature-card p {
+  margin: 0;
   color: var(--color-text-soft);
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
-.how-it-works {
-  padding: 4rem 1rem;
-  background: var(--color-bg);
-  color: var(--color-text);
+.icon-wrap {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
 }
 
-.steps {
+.steps-grid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  max-width: 900px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
 }
 
-.step {
-  text-align: center;
-  padding: 2rem 1rem;
+.step-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+  display: grid;
+  gap: var(--space-2);
 }
 
 .step-number {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--color-accent) 0%, #764ba2 100%);
-  color: white;
-  border-radius: 50%;
-  display: flex;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 auto 1rem auto;
+  font-size: 0.875rem;
+  font-weight: 700;
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
-.step h3 {
-  color: var(--color-text);
-  margin-bottom: 0.5rem;
-  font-size: 1.25rem;
+.step-card h3 {
+  margin: 0;
+  font-size: 1rem;
 }
 
-.step p {
+.step-card p {
+  margin: 0;
   color: var(--color-text-soft);
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
-.footer {
-  background: #1a202c;
-  color: white;
-  padding: 3rem 1rem 1rem;
-  margin-top: auto;
+.quick-links-panel {
+  margin-bottom: var(--space-2);
 }
 
-.footer-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
+.quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
-.footer-section h4 {
-  color: #e2e8f0;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-}
-
-.footer-section p {
-  color: #a0aec0;
-  line-height: 1.6;
-}
-
-.footer-section ul {
-  list-style: none;
-}
-
-.footer-section ul li {
-  margin-bottom: 0.5rem;
-}
-
-.footer-section ul li a {
-  color: #a0aec0;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.footer-section ul li a:hover {
-  color: #e2e8f0;
-}
-
-.footer-bottom {
-  text-align: center;
-  padding-top: 2rem;
-  border-top: 1px solid #2d3748;
-  color: #a0aec0;
-}
-
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
+@media (max-width: 900px) {
+  .home-page {
+    gap: var(--space-6);
   }
-  
-  .hero-subtitle {
-    font-size: 1.25rem;
+
+  .panel {
+    padding: var(--space-5);
   }
-  
-  .section-title {
-    font-size: 2rem;
+}
+
+@media (max-width: 640px) {
+  .btn-large {
+    width: 100%;
   }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
+
+  .hero-actions {
+    justify-content: stretch;
   }
-  
-  .steps {
-    grid-template-columns: 1fr;
+
+  .quick-links .btn {
+    width: 100%;
   }
 }
 </style>
