@@ -1,57 +1,56 @@
-# 🐳 Docker & Déploiement - Billard‑Book
+# Docker and Deployment - Billard-Book
 
-## 🎯 Objectifs
+## Goals
 
-- Déployer rapidement l'API (et le client) via Docker
-- Offrir un mode développement itératif
-- Standardiser les scripts
-- Préparer l’extension (DB, monitoring, prod)
+- Deploy the API (and optionally the client) quickly with Docker
+- Support iterative development workflows
+- Standardize script usage
+- Prepare for future extension (DB, monitoring, production hardening)
 
-## ⚡ Quick Start (API seule)
+## Quick Start (API only)
 
-docker compose down
-Méthode directe sans docker-compose (recommandée désormais) :
+Direct method without docker-compose (recommended now):
 
 ```bash
-# Build multi-stage (contexte = dossier server/, plus léger)
+# Build multi-stage image (context = server/, lightweight)
 docker build -t monuser/billard-book-api:dev server/
 
-# Exécuter localement
+# Run locally
 docker run --rm -p 8080:8080 monuser/billard-book-api:dev
 
-# Vérifier health (dans un autre terminal)
+# Check health (in another terminal)
 curl -f http://localhost:8080/actuator/health
 ```
 
-Script d'automatisation build + test + push : `scripts/docker/build-push.sh`.
+Build + health test + push automation script: `scripts/docker/build-push.sh`.
 
-## 🚢 Déploiement vers Docker Hub (Étapes détaillées)
+## Deploying to Docker Hub (Detailed Steps)
 
-### 1. Choisir / fixer la version
-Idéalement synchroniser avec la version Maven (`pom.xml`). Exemple : `0.1.0`.
+### 1. Choose and fix a version
+Ideally, keep it aligned with Maven versioning (`pom.xml`). Example: `0.1.0`.
 
-### 2. Connexion au registre (une fois par session)
+### 2. Log in to the registry (once per session)
 ```bash
 docker login -u <dockerhub_user>
 ```
 
-### 3. Build + test santé + push (script)
+### 3. Build + health test + push (script)
 ```bash
 ./scripts/docker/build-push.sh <dockerhub_user> 0.1.0
 ```
-Le script :
-- construit l'image avec deux tags : `:0.1.0` et `:latest`
-- lance un conteneur éphémère, attend `/actuator/health` UP
-- pousse les deux tags sur Docker Hub
+The script:
+- builds the image with two tags: `:0.1.0` and `:latest`
+- runs an ephemeral container and waits for `/actuator/health` to become UP
+- pushes both tags to Docker Hub
 
-### 4. Vérification côté registre
+### 4. Registry-side verification
 ```bash
 docker pull <dockerhub_user>/billard-book-api:0.1.0
 docker run --rm -p 8080:8080 <dockerhub_user>/billard-book-api:0.1.0
 curl -f http://localhost:8080/actuator/health
 ```
 
-### 5. Exécution avec variables d'environnement
+### 5. Run with environment variables
 ```bash
 docker run \
   --rm -p 9090:8080 \
@@ -61,8 +60,8 @@ docker run \
   <dockerhub_user>/billard-book-api:0.1.0
 ```
 
-### 6. (Optionnel) Build multi-architecture
-Utile si la plateforme cible (ex: Raspberry Pi) diffère de votre machine :
+### 6. (Optional) Multi-architecture build
+Useful when target platform (for example, Raspberry Pi) differs from your machine:
 ```bash
 docker buildx build --platform linux/amd64,linux/arm64 \
   -t <dockerhub_user>/billard-book-api:0.1.0 \
@@ -70,15 +69,15 @@ docker buildx build --platform linux/amd64,linux/arm64 \
   --push server/
 ```
 
-### 7. (Optionnel) Politique de versionnage
+### 7. (Optional) Versioning policy
 - `MAJEUR.MINOR.PATCH` (ex: 0.1.0)
-- Tag `latest` réservé à la dernière release stable
-- Utiliser des tags supplémentaires (ex: `0.1.0-build12`) en CI si besoin
+- Reserve `latest` for the newest stable release
+- Add extra tags (for example, `0.1.0-build12`) in CI when needed
 
-### 8. (Optionnel) Intégration Render / autre PaaS
-Dans Render : choisir "Deploy an existing image" et saisir `docker.io/<dockerhub_user>/billard-book-api:0.1.0` + définir la variable `PORT` si imposée. Aucun Dockerfile nécessaire côté Render.
+### 8. (Optional) Render / other PaaS integration
+In Render, choose "Deploy an existing image" and set `docker.io/<dockerhub_user>/billard-book-api:0.1.0`, then define `PORT` if required. No Dockerfile is needed on Render side.
 
-### 9. Récapitulatif minimal
+### 9. Minimal recap
 ```bash
 docker login -u monuser
 ./scripts/docker/build-push.sh monuser 0.1.0
@@ -87,55 +86,55 @@ docker run --rm -p 8080:8080 monuser/billard-book-api:0.1.0
 
 ---
 
-## 🏗️ Architecture Conteneurs
+## Container Architecture
 
 ```text
 Host
  ├─ billard-api :8080  (Spring Boot, JWT, Actuator)
- ├─ (option) nginx :80  (client statique + proxy /api)
- └─ (option) postgres :5432 (persistance future)
+ ├─ (optional) nginx :80  (static client + /api proxy)
+ └─ (optional) postgres :5432 (future persistence)
 ```
 
-Réseau : `billard-network` (bridge).  
-Volumes : `logs/` (API), (futur) `postgres_data`.
+Network: `billard-network` (bridge).  
+Volumes: `logs/` (API), and future `postgres_data`.
 
-## 📂 Fichiers Clés
+## Key Files
 
-| Fichier | Rôle |
+| File | Role |
 |---------|------|
-| `docker-compose.yml` | (Optionnel / Legacy) Orchestration multi‑services si besoin futur |
+| `docker-compose.yml` | (Optional / Legacy) Multi-service orchestration for future needs |
 | `server/Dockerfile` | Multi‑stage (build Maven + runtime JRE) |
-| `nginx.conf` | Proxy + cache + compression (si client conteneurisé) |
+| `nginx.conf` | Proxy + cache + compression (if the client is containerized) |
 | `scripts/docker/build-push.sh` | Build + test health + push Docker Hub |
-| `scripts/docker/stop.sh` | Arrêt compose (optionnel si compose utilisé) |
-| `server/.dockerignore` | Réduction contexte build |
-| `server/src/main/resources/application-docker.properties` | Profil Spring docker |
+| `scripts/docker/stop.sh` | Stop compose stack (optional if compose is used) |
+| `server/.dockerignore` | Build context reduction |
+| `server/src/main/resources/application-docker.properties` | Spring Docker profile |
 
-## 🧱 Dockerfile (multi-stage)
+## Dockerfile (multi-stage)
 
-- Stage build : Eclipse Temurin JDK 21 + Maven cache deps
-- Stage runtime : JRE 21 Alpine, user non-root
-- Avantages : image compacte, surface d’attaque réduite, cache efficace
+- Build stage: Eclipse Temurin JDK 21 + Maven dependency cache
+- Runtime stage: JRE 21 Alpine, non-root user
+- Benefits: compact image, reduced attack surface, effective layer caching
 
-## 🧪 Health & Monitoring
+## Health and Monitoring
 
-Endpoint Actuator documenté dans l’OpenAPI :
+Actuator endpoint documented in OpenAPI:
 
 ```text
 GET /actuator/health -> { status: "UP", groups: ["liveness","readiness"] }
 ```
 
-Healthcheck Compose (30s interval, restart automatique selon policies).
+Compose healthcheck can run on a 30s interval with restart policies.
 
-## 🔐 Sécurité de base
+## Baseline Security
 
-- User non-root dans l’image finale
-- Réseau privé Docker (pas de ports internes exposés inutilement)
-- Possibilité future : activer HTTPS via nginx + certbot (non inclus encore)
+- Non-root user in final image
+- Private Docker network (avoid exposing internal ports unnecessarily)
+- Future option: HTTPS via nginx + certbot (not included yet)
 
-## ⚙️ Variables d’environnement (extraits)
+## Environment Variables (examples)
 
-Dans `docker-compose.yml`:
+In `docker-compose.yml`:
 
 ```text
 SPRING_PROFILES_ACTIVE=docker
@@ -143,11 +142,11 @@ JAVA_OPTS=-Xmx512m -Xms256m
 JWT_EXPIRATION_MS=3600000
 ```
 
-Adapter mémoire selon la machine cible.
+Adjust memory settings based on target host capacity.
 
-## 🔄 Flux de travail minimal
+## Minimal Workflow
 
-| Besoin | Commande |
+| Need | Command |
 |--------|----------|
 | Build local | `docker build -t monuser/billard-book-api:0.1.0 server/` |
 | Test local | `docker run --rm -p 8080:8080 monuser/billard-book-api:0.1.0` |
@@ -155,44 +154,43 @@ Adapter mémoire selon la machine cible.
 | Build + push (script) | `./scripts/docker/build-push.sh monuser 0.1.0` |
 | Pull & retest | `docker pull monuser/billard-book-api:0.1.0` |
 
-Les scripts legacy (deploy/dev/status/start-daemon/setup) ont été supprimés pour alléger le projet.
+Legacy scripts (deploy/dev/status/start-daemon/setup) were removed to keep the project lean.
 
-## 🛠️ Scripts (interface proposée)
+## Scripts
 
-En-tête standard dans chaque script : description + usage.  
-Tous supposent Docker opérationnel.
+Each script includes a standard header with description and usage. All scripts assume Docker is available and running.
 
-## 🐞 Debug & Logs
+## Debug and Logs
 
 ```bash
 # Logs API
 docker compose logs -f billard-api
-# Une seule fois (dernier bloc)
+# One-time output (last lines only)
 docker compose logs --tail=100 billard-api
 # Inspect health
 curl -s http://localhost:8080/actuator/health | jq
 ```
 
-## 🧰 Mode développement
+## Development Mode
 
-Développement rapide conseillé en dehors du conteneur :
+Fast iteration is recommended outside a container:
 
 ```bash
 cd server
 mvn spring-boot:run -Dspring-boot.run.profiles=docker
 ```
 
-Pour tester l'image : rebuild ponctuel (voir flux ci-dessus). Un mode auto‑reload conteneur n'est plus fourni (trop coûteux pour ce projet).
+To validate container behavior, rebuild on demand (see workflow above). Container auto-reload is no longer provided.
 
-## 🚀 Passage production (roadmap)
+## Production Roadmap
 
-1. Ajouter DB Postgres + migrations
-2. CI (GitHub Actions) pour build & push sur tag
-3. Observabilité (metrics + logs centralisés)
-4. Reverse proxy (TLS, rate limiting)
-5. Hardening image (distroless / slim JRE)
+1. Add Postgres + migrations
+2. Add CI (GitHub Actions) for build/push on tags
+3. Add observability (metrics + centralized logs)
+4. Add reverse proxy hardening (TLS, rate limiting)
+5. Harden image strategy (distroless/slim runtime)
 
-## 🧾 Exemple extension DB (future)
+## Future DB Extension Example
 
 ```yaml
 postgres:
@@ -207,26 +205,22 @@ postgres:
     - billard-network
 ```
 
-## 🧹 Nettoyage
+## Cleanup
 
 ```bash
-# Conteneur arrêté automatiquement (run --rm)
-# Nettoyage images non utilisées
+# Container stops automatically (run --rm)
+# Remove unused images
 docker image prune -f
-# Nettoyage global (dangereux) :
+# Global cleanup (destructive):
 docker system prune -f
 ```
 
-## ❓ FAQ Rapide
+## Quick FAQ
 
-| Problème | Piste |
+| Problem | Suggestion |
 |----------|-------|
-| Health DOWN | Regarder logs API, vérifier port 8080 collision |
-| Rebuild lent | Vérifier `.dockerignore`, cache dépendances Maven (stage séparé) |
-| Pas d’auto reload | Utiliser `mvn spring-boot:run` pour dev |
-| Permissions logs | Vérifier UID dans image / chmod dossier `logs` |
+| Health DOWN | Check API logs and verify port 8080 is not already used |
+| Slow rebuild | Review `.dockerignore` and Maven dependency caching |
+| No auto reload | Use `mvn spring-boot:run` for development |
+| Log permission issues | Verify runtime UID and permissions on `logs` |
 
-## 📌 Notes
-
-- Anciennes docs séparées fusionnées ici
-- README racine ne garde qu’un aperçu et un lien vers ce fichier

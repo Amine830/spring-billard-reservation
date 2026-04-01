@@ -1,10 +1,10 @@
-# API de Réservation de Tables de Billard
+# Billiard Table Reservation API
 
-## 🎯 Vue d'ensemble
+## Overview
 
-Cette API REST permet la gestion de réservations de tables de billard avec un système d'authentification JWT, de gestion des joueurs, et de commentaires sur les parties. L'architecture suit les principes RESTful avec une séparation claire des responsabilités entre les couches.
+This REST API manages billiard table reservations with JWT authentication, player registration, and reservation comments. The architecture follows REST principles with clear separation of concerns across layers.
 
-## 🏗️ Architecture générale
+## High-Level Architecture
 
 ```bash
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -19,26 +19,26 @@ Cette API REST permet la gestion de réservations de tables de billard avec un s
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🔐 Authentification et Autorisation
+## Authentication and Authorization
 
-### Système JWT (JSON Web Tokens)
+### JWT System (JSON Web Tokens)
 
-#### Principe
+#### Principles
 
-- **Authentification** : Vérification de l'identité utilisateur
-- **Autorisation** : Contrôle d'accès aux ressources basé sur les droits
-- **Sessions stateless** : Aucune session côté serveur, tout dans le token
+- **Authentication**: Verifies user identity
+- **Authorization**: Controls access rights on resources
+- **Stateless sessions**: No server-side session storage, everything is in the token
 
-#### Implémentation
+#### Implementation
 
-- **Algorithme** : HS512 (HMAC avec SHA-512)
-- **Bibliothèque** : `jjwt-api 0.12.6`
-- **Claims personnalisés** :
-  - `sub` : Identifiant utilisateur
-  - `own` : Liste des indices de réservations possédées
-  - `ply` : Liste des indices de réservations où l'utilisateur joue
+- **Algorithm**: HS512 (HMAC with SHA-512)
+- **Library**: `jjwt-api 0.12.6`
+- **Custom claims**:
+    - `sub`: User identifier
+    - `own`: List of reservation indexes owned by user
+    - `ply`: List of reservation indexes where user participates
 
-#### Structure du token
+#### Token Structure
 
 ```json
 {
@@ -52,84 +52,84 @@ Cette API REST permet la gestion de réservations de tables de billard avec un s
 }
 ```
 
-## 🔄 Architecture en couches
+## Layered Architecture
 
-### 1. Couche Contrôleurs (Controllers)
+### 1. Controller Layer
 
 #### ReservationOperationController
 
-- **Responsabilité** : Opérations CRUD sur les réservations
-- **Endpoints principaux** :
-  - `POST /reservations` : Création
-  - `GET /reservations/{id}` : Lecture
-  - `PUT /reservations/{id}` : Modification
-  - `DELETE /reservations/{id}` : Suppression
-  - `POST /reservations/{id}/register` : Inscription à une réservation
-  - `DELETE /reservations/{id}/unregister` : Désinscription
-  - `POST /reservations/{id}/comment` : Ajout de commentaire
+- **Responsibility**: Reservation CRUD and actions
+- **Main endpoints**:
+    - `POST /reservations`: Create
+    - `GET /reservations/{id}`: Read
+    - `PUT /reservations/{id}`: Update
+    - `DELETE /reservations/{id}`: Delete
+    - `POST /reservations/{id}/register`: Register to reservation
+    - `DELETE /reservations/{id}/unregister`: Unregister from reservation
+    - `POST /reservations/{id}/comment`: Add comment
 
 #### ReservationResourceController
 
-- **Responsabilité** : Accès aux ressources et collections
-- **Endpoints principaux** :
-  - `GET /reservations` : Liste des réservations
-  - `GET /reservations/{id}/players` : Joueurs d'une réservation
+- **Responsibility**: Resource and collection access
+- **Main endpoints**:
+    - `GET /reservations`: Reservation listing
+    - `GET /reservations/{id}/players`: Reservation players
 
 #### UserResourceController et UserOperationController
 
-- **Responsabilité** : Gestion des utilisateurs et authentification
-- **Endpoints principaux** :
-  - `POST /users/login` : Connexion
-  - `POST /users/logout` : Déconnexion
-  - CRUD complet sur les utilisateurs
+- **Responsibility**: User management and authentication
+- **Main endpoints**:
+    - `POST /users/login`: Sign in
+    - `POST /users/logout`: Sign out
+    - Full user CRUD
 
-### 2. Couche Services (Business Logic)
+### 2. Service Layer (Business Logic)
 
 #### ReservationOperationService
 
 ```java
 @Service
 public class ReservationOperationService {
-    // Logique métier pour les opérations sur réservations
-    // Gestion des claims JWT
-    // Validation des règles business
+    // Business logic for reservation operations
+    // JWT claim management
+    // Business rule validation
 }
 ```
 
-**Responsabilités** :
+**Responsibilities**:
 
-- Validation des règles métier
-- Mise à jour des claims JWT après chaque opération
-- Gestion des relations entre utilisateurs et réservations
+- Validate business rules
+- Update JWT claims after each operation
+- Manage relationships between users and reservations
 
 #### ReservationResourceService
 
 ```java
 @Service 
 public class ReservationResourceService {
-    // Logique d'accès aux ressources
-    // Transformation en DTOs
-    // Filtrage des données
+    // Resource access logic
+    // DTO transformations
+    // Data filtering
 }
 ```
 
-### 3. Couche DAO (Data Access Objects)
+### 3. DAO Layer (Data Access Objects)
 
 #### Architecture AbstractListDao
 
 ```java
 public abstract class AbstractListDao<T> implements Dao<T> {
     protected final List<T> collection = new ArrayList<>();
-    // Implémentation générique avec List en mémoire
+    // Generic in-memory list implementation
 }
 ```
 
-**Principes** :
+**Principles**:
 
-- **Stockage en mémoire** : `List<T>` pour la persistance
-- **Suppression logique** : Les éléments supprimés deviennent `null`
-- **Gestion des indices** : L'index dans la liste sert d'identifiant
-- **Sécurité type** : Généricité pour la réutilisabilité
+- **In-memory storage**: `List<T>` as persistence layer
+- **Soft deletion**: Deleted elements become `null`
+- **Index-based identity**: List index is used as identifier
+- **Type safety**: Generic abstractions for reuse
 
 #### ReservationDao
 
@@ -147,40 +147,40 @@ public class ReservationDao extends AbstractListDao<Reservation> {
     }
 ```
 
-**Spécificités** :
+**Specific behavior**:
 
-- Gestion des réservations supprimées
-- Recherche par propriétaire (`findByOwner`)
-- Recherche par joueur (`findByPlayer`)
+- Handles deleted reservations explicitly
+- Owner-based lookup (`findByOwner`)
+- Player-based lookup (`findByPlayer`)
 
-## 📊 Modèles de données (Entities)
+## Data Models (Entities)
 
 ### Reservation
 
 ```java
 public class Reservation {
-    private final String id;          // UUID stable (8 caractères)
-    private String tableId;           // Table de billard
-    private final String ownerId;     // Propriétaire de la réservation
-    private LocalDateTime startTime;   // Début
-    private LocalDateTime endTime;     // Fin
-    private List<String> players;      // Joueurs (max 4)
-    private List<Comment> comments;    // Commentaires sur la partie
+    private final String id;           // Stable UUID (8 chars)
+    private String tableId;            // Billiard table id
+    private final String ownerId;      // Reservation owner
+    private LocalDateTime startTime;   // Start time
+    private LocalDateTime endTime;     // End time
+    private List<String> players;      // Players (max 4)
+    private List<Comment> comments;    // Reservation comments
 }
 ```
 
-**Règles métier** :
+**Business rules**:
 
-- **Maximum 4 joueurs** par partie de billard
-- **ID stable** : UUID généré à la création, ne change jamais
-- **Propriétaire automatique** : Le créateur devient automatiquement joueur
+- **Maximum 4 players** per reservation
+- **Stable ID**: UUID generated at creation and never changed
+- **Automatic owner participation**: creator is automatically included as a player
 
 ### Comment
 
 ```java
 public class Comment {
-    private final String authorId;    // Auteur du commentaire
-    private final String content;     // Contenu
+    private final String authorId;    // Comment author
+    private final String content;     // Content
 }
 ```
 
@@ -188,21 +188,21 @@ public class Comment {
 
 ```java
 public class User {
-    private String id;               // Identifiant unique
-    private String name;             // Nom d'affichage
-    private String password;         // Mot de passe (hashé)
+    private String id;               // Unique identifier
+    private String name;             // Display name
+    private String password;         // Password (hashed)
 }
 ```
 
-## 📨 DTOs (Data Transfer Objects)
+## DTOs (Data Transfer Objects)
 
-### Rôle des DTOs
+### DTO Role
 
-Les DTOs servent d'interface entre l'API et les clients, en :
+DTOs are the API contract boundary and are used to:
 
-- **Masquant** la structure interne des entités
-- **Contrôlant** les données exposées
-- **Facilitant** les évolutions de l'API
+- **Hide** internal entity structure
+- **Control** exposed payloads
+- **Support** safe API evolution
 
 ### ReservationRequestDto
 
@@ -235,7 +235,7 @@ public class PlayersResponseDto {
 }
 ```
 
-## 🔧 Filtres (Cross-cutting Concerns)
+## Filters (Cross-Cutting Concerns)
 
 ### 1. AuthenticationFilter
 
@@ -244,11 +244,11 @@ public class PlayersResponseDto {
 public class AuthenticationFilter extends HttpFilter
 ```
 
-**Responsabilité** : Vérification des tokens JWT
+**Responsibility**: JWT verification
 
-- Extraction du token depuis `Authorization: Bearer`
-- Validation de la signature et expiration
-- Stockage des informations utilisateur dans les attributs de requête
+- Extract token from `Authorization: Bearer`
+- Validate signature and expiration
+- Store user info in request attributes
 
 ### 2. AuthorizationFilter  
 
@@ -257,11 +257,11 @@ public class AuthenticationFilter extends HttpFilter
 public class AuthorizationFilter extends HttpFilter
 ```
 
-**Responsabilité** : Contrôle d'accès aux ressources
+**Responsibility**: resource access control
 
-- Vérification des droits sur les réservations
-- Validation des claims `own` et `ply`
-- Protection contre l'accès non autorisé
+- Check reservation-level permissions
+- Validate `own` and `ply` claims
+- Prevent unauthorized access
 
 ### 3. DateCacheFilter
 
@@ -270,22 +270,22 @@ public class AuthorizationFilter extends HttpFilter
 public class DateCacheFilter extends HttpFilter
 ```
 
-**Responsabilité** : Gestion du cache HTTP conditionnel
+**Responsibility**: conditional HTTP cache management
 
-- Headers `Last-Modified` et `If-Modified-Since`
-- Réponses `304 Not Modified` pour optimiser la bande passante
-- Invalidation du cache lors des modifications
+- `Last-Modified` and `If-Modified-Since` headers
+- `304 Not Modified` responses for bandwidth optimization
+- Cache invalidation on write operations
 
-**Logique** :
+**Logic**:
 
 ```java
-// GET : Vérification du cache
+// GET: cache validation
 if (ifModifiedSince >= lastModified.getTime()) {
     response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
     return;
 }
 
-// POST/PUT/DELETE : Invalidation du cache
+// POST/PUT/DELETE: cache invalidation
 lastModifiedMap.put(url, new Date());
 ```
 
@@ -296,98 +296,98 @@ lastModifiedMap.put(url, new Date());
 public class ETagFilter extends HttpFilter
 ```
 
-**Responsabilité** : Gestion des ETags pour la cohérence
+**Responsibility**: ETag management for consistency
 
-- Génération d'ETags basés sur le contenu
-- Validation avec `If-None-Match`
-- Prévention des modifications concurrentes
+- Generate content-based ETags
+- Validate through `If-None-Match`
+- Reduce conflicting updates
 
-## 🎯 Principes de conception
+## Design Principles
 
-### 1. Identifiants stables
+### 1. Stable Identifiers
 
-**Problème résolu** : Les IDs de réservations changeaient lors des mises à jour
-**Solution** : UUID générés à la création, immutables
+**Problem solved**: reservation IDs changed after updates
+**Solution**: immutable UUID generated at creation time
 
 ```java
 public Reservation(String tableId, String creatorId, ...) {
     this.id = UUID.randomUUID().toString().substring(0, 8);
-    // L'ID ne change JAMAIS après création
+    // ID never changes after creation
 }
 ```
 
-### 2. Codes de statut HTTP sémantiques
+### 2. Semantic HTTP Status Codes
 
-| Code | Signification | Usage |
+| Code | Meaning | Usage |
 |------|---------------|-------|
-| 200  | OK | Ressource trouvée et retournée |
-| 201  | Created | Ressource créée avec succès |
-| 302  | Found | Ressource déplacée temporairement |
-| 304  | Not Modified | Ressource inchangée (cache) |
-| 400  | Bad Request | Requête invalide (ex. paramètres manquants) |
-| 401  | Unauthorized | Authentification requise |
-| 403  | Forbidden | Accès interdit (ex. droits insuffisants) |
-| 404  | Not Found | Ressource n'existe pas |
-| 410  | Gone | Ressource existait mais supprimée |
-| 409  | Conflict | Conflit de ressources (ex. doublon) |
-| 422  | Unprocessable Entity | Entité non traitable (ex. validation échouée) |
+| 200  | OK | Resource found and returned |
+| 201  | Created | Resource created successfully |
+| 302  | Found | Resource temporarily moved |
+| 304  | Not Modified | Resource unchanged (cache hit) |
+| 400  | Bad Request | Invalid request (for example, missing parameters) |
+| 401  | Unauthorized | Authentication required |
+| 403  | Forbidden | Access denied (for example, insufficient rights) |
+| 404  | Not Found | Resource does not exist |
+| 410  | Gone | Resource existed but was deleted |
+| 409  | Conflict | Resource conflict (for example, duplicate) |
+| 422  | Unprocessable Entity | Validation failed |
 
-**Logique 404 vs 410** :
+**404 vs 410 logic**:
 
 ```java
-// 404 : ID jamais existé
+// 404: ID never existed
 throw new NameNotFoundException("Reservation not found");
 
-// 410 : ID existait mais réservation supprimée (null dans la liste)
+// 410: ID existed but reservation was deleted (null entry in list)
 if (hasDeletedElements && validUuidFormat) {
     throw new DeletedReservationException("Reservation deleted");
 }
 ```
 
-### 3. Gestion des relations parent-enfant
+### 3. Parent-Child Resource Consistency
 
-**Cache intelligent** : Modification d'une sous-ressource invalide la ressource parent
+**Smart cache behavior**: updating a subresource invalidates its parent resource cache
 
 ```java
-// POST /reservations/{id}/comment invalide le cache de /reservations/{id}
+// POST /reservations/{id}/comment invalidates /reservations/{id} cache
 if (url.matches("/reservations/[^/]+/.*")) {
     String parentUrl = url.replaceFirst("(/reservations/[^/]+)/.*", "$1");
     lastModifiedMap.put(parentUrl, now);
 }
 ```
 
-## 🛠️ Technologies utilisées
+## Technologies Used
 
 ### Backend
 
-- **Spring Boot 3.3.5** : Framework principal
-- **Java 21** : Langage de programmation
-- **Maven** : Gestionnaire de dépendances
-- **Jackson** : Sérialisation JSON/XML
-- **JWT (jjwt 0.12.6)** : Authentification
-- **Jakarta Servlet API** : Filtres HTTP
+- **Spring Boot 3.3.5**: Core framework
+- **Java 21**: Programming language
+- **Maven**: Dependency management
+- **Jackson**: JSON/XML serialization
+- **JWT (jjwt 0.12.6)**: Authentication
+- **Jakarta Servlet API**: HTTP filters
 
-### Patterns utilisés
+### Patterns Used
 
-- **DAO Pattern** : Accès aux données
-- **DTO Pattern** : Transfer d'objets
-- **Filter Chain** : Traitement des requêtes
-- **Service Layer** : Logique métier
-- **Dependency Injection** : Inversion de contrôle
+- **DAO Pattern**: Data access
+- **DTO Pattern**: Data transfer objects
+- **Filter Chain**: Request processing
+- **Service Layer**: Business logic
+- **Dependency Injection**: Inversion of control
 
-## 📋 Spécification OpenAPI
+## OpenAPI Specification
 
-La spécification OpenAPI complète est disponible dans :
+The full OpenAPI specification is available here:
 
-[Spécification OpenAPI (Billard-Book-api.yaml)](openapi/Billard-Book-api.yaml)
+[OpenAPI Specification (Billard-Book-api.yaml)](openapi/Billard-Book-api.yaml)
 
-## 🔍 Détails d'implémentation
+## Implementation Details
 
-### Gestion des erreurs
+### Error Handling
 
 ```java
 try {
-    // Opération métier
+    // Business operation
 } catch (NameNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 } catch (DeletedReservationException e) {
@@ -397,43 +397,43 @@ try {
 }
 ```
 
-### Sérialization personnalisée
+### Custom Serialization
 
 ```java
 @JsonDeserialize(using = LocalDateTimeDeserializer.class)
 private LocalDateTime startTime;
 
-// Gestion des chaînes "null" en entrée
+// Handles "null" string values in input
 public class LocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime>
 ```
 
-### Connexion management
+### Connection Management
 
 ```java
 @Component
 public class ConnectionManager {
-    // Gestion centralisée des tokens JWT
-    // Extraction et validation des utilisateurs
-    // Mise à jour des claims
+    // Central JWT token management
+    // User extraction and validation
+    // Claim refresh logic
 }
 ```
 
-## 🚀 Points forts de l'architecture
+## Architecture Strengths
 
-1. **Séparation des responsabilités** : Chaque couche a un rôle précis
-2. **Extensibilité** : Ajout facile de nouveaux endpoints
-3. **Testabilité** : Architecture modulaire facilitant les tests
-4. **Performance** : Cache HTTP intelligent
-5. **Sécurité** : Authentification et autorisation robustes
-6. **Standards** : Respect des conventions REST et HTTP
+1. **Separation of concerns**: each layer has a precise role
+2. **Extensibility**: easy to add endpoints and features
+3. **Testability**: modular architecture supports isolated testing
+4. **Performance**: intelligent HTTP caching strategy
+5. **Security**: robust authentication and authorization model
+6. **Standards**: aligned with REST and HTTP conventions
 
-## 📈 Métriques de qualité
+## Quality Metrics
 
-- **Tests** : 89/89 (100% de réussite)
-- **Stabilité** : Élimination des comportements non-déterministes
-- **Performance** : Cache HTTP réduisant la bande passante
-- **Maintenabilité** : Code structuré et documenté
+- **Tests**: 89/89 (100% pass rate)
+- **Stability**: non-deterministic behaviors removed
+- **Performance**: HTTP cache reduces bandwidth usage
+- **Maintainability**: structured and documented codebase
 
 ---
 
-*Cette documentation technique présente l'état actuel de l'API après optimisation et correction des problèmes identifiés. L'architecture est prête pour la production et les évolutions futures.*
+This technical documentation reflects the current optimized API state. The architecture is ready for production-oriented hardening and future evolution.

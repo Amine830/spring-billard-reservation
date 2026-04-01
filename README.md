@@ -9,72 +9,72 @@
 ![Docker Multi‑Stage](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
 ![License MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-Plateforme pédagogique de gestion de réservations de tables de billard composée d'une API Java (Spring-like structure) et d'un client web SPA Vue 3.
+Educational platform for billiard table booking management, composed of a Java API (Spring-like structure) and a Vue 3 SPA frontend.
 
-## 🎯 Objectifs pédagogiques
+## Learning Goals
 
-Ce projet sert de support pour :
+This project is designed to demonstrate:
 
-- Illustrer une API REST avec hypermédia léger (liens suivis côté client)
-- Utilisation de Spring Boot avec une architecture modulaire, respectant les bonnes pratiques (design patterns, séparation des préoccupations, DTO, DAO, filtres ...)
-- Mettre en œuvre l'authentification stateless par JWT
-- Pratiquer une architecture front moderne (Vue 3 + Pinia + routing SPA)
-- Gérer l'état côté client (stores, rafraîchissements ciblés, UX santé backend)
-- Introduire des notions de résilience (health check, backoff)
-- Préparer l'industrialisation (Docker multi-stage, script build/push, variables d'environnement)
-- Ouvrir la voie à des extensions futures (persistance, CI/CD, observabilité)
+- A REST API with lightweight hypermedia (links followed by the client)
+- Spring Boot with a modular architecture and good engineering practices (design patterns, separation of concerns, DTO, DAO, filters)
+- Stateless JWT authentication
+- A modern frontend stack (Vue 3 + Pinia + SPA routing)
+- Client-side state management (stores, targeted refresh, backend health UX)
+- Resilience concepts (health checks, retry backoff)
+- Delivery readiness (multi-stage Docker, build/push scripts, environment variables)
+- Future extension paths (persistence, CI/CD, observability)
 
-⚠️ Données de démonstration : le jeu de données est nettoyé périodiquement (purge régulière) afin de garder l'environnement léger. Ne stockez aucune information sensible.
+Demo data note: data is periodically reset to keep the environment lightweight. Do not store sensitive information.
 
-## 🗺️ Contenu du dépôt
+## Repository Content
 
-| Chemin | Rôle | Doc détaillée |
-|--------|------|---------------|
-| `server/` | API REST (réservations, users, JWT) | [`server/README-api.md`](server/README-api.md) |
-| `client/` | Application web (Vue 3, Pinia, theming, SPA) | [`client/README-client.md`](client/README-client.md) |
-| `nginx.conf` | Config exemple reverse proxy statique | - |
-| `docs/docker/` | Documentation Docker consolidée | [`docs/docker/README.md`](docs/docker/README.md) |
-| `scripts/docker/` | Scripts (build-push, stop, dev, deploy ...) | - |
-| `docker-compose.yml` | Orchestration (API + placeholders pour client, DB) | Voir section Docker |
+| Path | Role | Detailed docs |
+|------|------|---------------|
+| `server/` | REST API (reservations, users, JWT) | [`server/README.md`](server/README.md) |
+| `client/` | Web app (Vue 3, Pinia, theming, SPA) | [`client/README.md`](client/README.md) |
+| `nginx.conf` | Example static reverse proxy config | - |
+| `docs/docker/` | Consolidated Docker documentation | [`docs/docker/README.md`](docs/docker/README.md) |
+| `scripts/docker/` | Scripts (build-push, stop) | - |
+| `docker-compose.yml` | Optional orchestration (API + placeholders for client and DB) | See Docker section |
 
-## 🚀 Démarrage ultra-rapide
+## Quick Start
 
-Prérequis : Docker. (Compose reste optionnel / legacy.)
+Prerequisite: Docker. Docker Compose is optional and kept for legacy workflows.
 
 ```bash
-# Build image (contexte = server/)
+# Build image (context = server/)
 docker build -t billard-book-api:dev server/
 
-# Run local (port 8080)
+# Run locally (port 8080)
 docker run --rm -p 8080:8080 billard-book-api:dev
 
-# Dans un autre terminal :
+# In another terminal:
 curl -f http://localhost:8080/actuator/health
 ```
 
-Push vers Docker Hub (exemple) :
+Push to Docker Hub (example):
 
 ```bash
 ./scripts/docker/build-push.sh monuser 0.1.0
 # push (:0.1.0 & :latest)
-docker pull monuser/billard-book-api:0.1.0     # vérification
+docker pull monuser/billard-book-api:0.1.0     # verification
 docker run --rm -p 8080:8080 monuser/billard-book-api:0.1.0
 ```
 
-Plus de détails : voir la section "Déploiement vers Docker Hub" dans [docs/docker/README.md](docs/docker/README.md).
+For more details, see "Deploying to Docker Hub" in [docs/docker/README.md](docs/docker/README.md).
 
-Anciennes commandes `deploy.sh`, `dev.sh`, `status.sh`, `start-daemon.sh`, `setup.sh` supprimées (simplification).
+Legacy commands `deploy.sh`, `dev.sh`, `status.sh`, `start-daemon.sh`, and `setup.sh` were removed to simplify maintenance.
 
-Client (mode développement) :
+Client (development mode):
 
 ```bash
 cd client
 npm install
 npm run dev
-# Ouvrir http://localhost:5173 (port Vite par défaut)
+# Open http://localhost:5173 (default Vite port)
 ```
 
-## 🧩 Architecture globale
+## Global Architecture
 
 ```text
 ┌──────────────┐        ┌──────────────┐
@@ -82,111 +82,102 @@ npm run dev
 │  (Vue + TS)  │  JWT   │  (Java)      │
 └──────────────┘        └──────────────┘
         ▲                       │
-        │ Axios + Pinia         │ In-memory (évolutif DB)
+        │ Axios + Pinia         │ In-memory (DB-ready)
         ▼                       ▼
-   Thème clair/sombre       Services / DAOs / JWT
+   Light/dark theme         Services / DAOs / JWT
 ```
 
-Points clés :
+Highlights:
 
-- Authentification par JWT (stockage côté client localStorage)
-- Réservations avec inscription/désinscription, commentaires, statut complet
-- Client responsive avec bascule thème sombre/clair
-- Suivi des liens (HATEOAS simplifié) côté client pour enrichir les réservations
+- JWT authentication (token stored in client localStorage)
+- Reservation workflows with register/unregister, comments, and full-capacity status
+- Responsive client with light/dark theme toggle
+- Link-following (simplified HATEOAS) on the client to enrich reservation data
 
-## 🔐 Sécurité (aperçu)
+## Security Overview
 
-- Token JWT ajouté aux requêtes sortantes (intercepteur axios)
-- Claims mis à jour après opérations (création, inscription, etc.)
-- Aucune session serveur (stateless) → expiration configurée (`JWT_EXPIRATION_MS`)
+- JWT token is attached to outgoing requests (axios interceptor)
+- Claims are refreshed after key operations (create, register, etc.)
+- No server session (stateless) with configurable expiration (`JWT_EXPIRATION_MS`)
 
-## 🛠️ Variables d'environnement API (exemples)
+## API Environment Variables (examples)
 
-À définir selon la plateforme :
+Define according to your platform:
 
 - `SPRING_PROFILES_ACTIVE=docker`
 - `JAVA_OPTS=-Xmx512m -Xms256m`
 - `JWT_EXPIRATION_MS=3600000`
-- `PORT` (fourni par certain PaaS, fallback 8080)
+- `PORT` (provided by some PaaS platforms, fallback 8080)
 
-## 📦 Scripts principaux
+## Main Scripts
 
-Backend : build via Maven (voir [README API](server/README.md)).
-Frontend : `npm run dev | build | preview | lint` (voir [README client](client/README.md)).
+Backend: build with Maven (see [API README](server/README.md)).
+Frontend: `npm run dev | build | preview | lint` (see [client README](client/README.md)).
 
-## 🧪 Tests
+## Tests
 
-- Tests unitaires côté serveur (voir `server/`)
-- (À prévoir) tests frontend (Vitest + Testing Library)
+- Server-side unit tests (see `server/`)
+- Frontend tests to add (Vitest + Testing Library)
 
-## 🐳 Docker (aperçu)
+## Docker Overview
 
-Image unique API construite via multi‑stage : [`server/Dockerfile`](server/Dockerfile).
+Single API image built with multi-stage Docker: [`server/Dockerfile`](server/Dockerfile).
 
-- Exposition par défaut : `8080` (overridable via `-e PORT=...`)
-- Health interne : `/actuator/health`
-- Script automation build + test + push : `scripts/docker/build-push.sh`
-- Guide complet : `docs/docker/README.md`
-- `docker-compose.yml` conservé à titre optionnel (plus requis pour un simple test)
+- Default exposed port: `8080` (override with `-e PORT=...`)
+- Internal health endpoint: `/actuator/health`
+- Build/test/push automation script: `scripts/docker/build-push.sh`
+- Full guide: `docs/docker/README.md`
+- `docker-compose.yml` is optional and not required for simple local tests
 
-Exemple test rapide :
+Quick test example:
 
 ```bash
 docker build -t test-api server/ && docker run --rm -p 8080:8080 test-api
 ```
 
-## 🔗 Ressources complémentaires
+## Additional Resources
 
-- OpenAPI : [`server/openapi/Billard-Book-api.yaml`](server/openapi/Billard-Book-api.yaml)
-- Collection Postman : [`server/postman/`](server/postman/)
-- Favicon & PWA manifest : [`client/public/`](client/public/site.webmanifest)
-- Captures d'écran : [`docs/screenshots/`](docs/screenshots/)
+- OpenAPI: [`server/openapi/Billard-Book-api.yaml`](server/openapi/Billard-Book-api.yaml)
+- Postman collection: [`server/postman/`](server/postman/)
+- Favicon and PWA manifest: [`client/public/`](client/public/site.webmanifest)
+- Screenshots: [`docs/screenshots/`](docs/screenshots/)
 
-## 🗺️ Roadmap synthétique
+## Roadmap
 
-- [ ] Ajout tests frontend
-- [ ] WebSocket/SSE pour commentaires temps réel
-- [ ] Pagination / filtrage réservations
-- [ ] Internationalisation (FR/EN)
-- [ ] Persistance BD (PostgreSQL) + migrations
-- [ ] Amélioration du système d'authentification et gestion des rôles
+- [ ] Add frontend tests
+- [ ] Add WebSocket/SSE for real-time comments
+- [ ] Add reservation pagination and filtering
+- [ ] Add internationalization (FR/EN)
+- [ ] Add database persistence (PostgreSQL) + migrations
+- [ ] Improve authentication and role management
 
-## 🆕 Changements récents (Frontend)
 
-- Profil utilisateur : édition du mot de passe (PUT `/users/{login}`) et suppression compte (DELETE) avec dialogue de confirmation.
-- Réservations : écran dédié d'édition / suppression (PUT / DELETE `/reservations/{id}`) accessible uniquement au propriétaire (vérification owner côté UI + store).
-- Optimisation joueurs : rafraîchissement ciblé via GET `/reservations/{id}/players` (évite rechargement complet après inscription/désinscription).
-- Health‑check périodique : bannière rouge si backend DOWN via GET `/actuator/health` (backoff adaptatif pour cold start / services dormants).
-- Sécurité UI : suppression de l'affichage du champ mot de passe (ex-`name`) partout; uniquement champ de saisie masqué lors de la modification.
-- Liste utilisateurs : chargement détaillé individuel (follow des liens) avec stats créées / participations; fallback robuste si certaines listes manquent.
-- Base URL API dynamique : `VITE_API_BASE_URL` pour différencier environnement local (proxy `/api`) et déploiement (URL distante).
-
-## 🖼️ Aperçu visuel
+## Visual Preview
 
 ![Accueil clair](docs/screenshots/billard0.png)
 
-Plus de captures et légendes: voir [`docs/screenshots/`](docs/screenshots/).
+More screenshots and labels: [`docs/screenshots/`](docs/screenshots/).
 
-## 🤝 Contribution
+## Contribution
 
-1. Fork + branche feature
-2. Lint / build locaux OK
-3. PR avec description claire (screens si UI)
-4. Respect style TypeScript / conventions Java
+1. Fork and create a feature branch
+2. Ensure local lint/build is green
+3. Open a PR with a clear description (include screenshots for UI changes)
+4. Follow TypeScript style and Java conventions
 
 ---
 
-Pour plus de détails techniques : consultez les README spécifiques dans [`server/`](server/) et [`client/`](client/).
+For deeper technical details, read the dedicated documentation in [`server/`](server/) and [`client/`](client/).
 
-## 📫 Contact
+## Contact
 
 - Maintainer: [@Amine830](https://github.com/Amine830)
-- Bugs / idées : créer une *issue* GitHub (labels `bug`, `enhancement`)
-- Démo frontend : Netlify (voir badge statut en haut)
-- Image API : Docker Hub (voir section Docker)
+- Bugs and ideas: open a GitHub issue (labels `bug`, `enhancement`)
+- Frontend demo: Netlify (see status badge above)
+- API image: Docker Hub (see Docker section)
 
-Pour demandes avancées (persistance, CI/CD, observabilité), ouvrir une issue dédiée.
+For advanced requests (persistence, CI/CD, observability), open a dedicated issue.
 
-## 📄 Licence
+## License
 
-Projet sous licence MIT (voir fichier [`LICENSE`](LICENSE)).
+This project is licensed under MIT (see [`LICENSE`](LICENSE)).

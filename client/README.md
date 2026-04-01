@@ -1,50 +1,50 @@
-# Client Web Billard-Book
+# Billard-Book Web Client
 
-## 🎯 Vue d'ensemble
+## Overview
 
-Application SPA (Single Page Application) permettant de consommer l'API Billard‑Book : authentification, gestion des réservations (création, inscription / désinscription), commentaires, vue détaillée, liste utilisateurs, thème sombre/clair et navigation unifiée.
+This SPA (Single Page Application) consumes the Billard-Book API and provides authentication, reservation management (create, register/unregister), comments, detailed views, user listing, light/dark theme support, and unified navigation.
 
-## 🧱 Pile technologique
+## Technology Stack
 
-| Domaine | Choix | Raison |
-|---------|-------|--------|
-| Framework UI | Vue 3 + Composition API | Simplicité + réactivité fine |
-| Langage | TypeScript | Sécurité de types & DX |
-| Bundler | Vite | Démarrage ultra rapide + HMR |
-| State Management | Pinia | Store modulaire léger & TS friendly |
-| HTTP Client | Axios | Intercepteurs faciles pour JWT |
-| Routing | Vue Router 4 | Navigation SPA + guards |
-| Styling | CSS natif modulé + variables thème | Contrôle fin + faible coût |
-| Auth persist | localStorage (token) | Simplicité côté client |
+| Domain | Choice | Why |
+|--------|--------|-----|
+| UI Framework | Vue 3 + Composition API | Simplicity and fine-grained reactivity |
+| Language | TypeScript | Type safety and developer experience |
+| Bundler | Vite | Fast startup and HMR |
+| State Management | Pinia | Lightweight modular stores with great TS support |
+| HTTP Client | Axios | Easy JWT interceptor integration |
+| Routing | Vue Router 4 | SPA navigation and route guards |
+| Styling | Native CSS + theme variables | Fine control and low overhead |
+| Auth Persistence | localStorage (token) | Client-side simplicity |
 
-## 🗂️ Structure du projet (client/)
+## Project Structure (client/)
 
 ```bash
 client/
-  index.html              # Entrée HTML (balises favicon + manifest)
-  public/                 # Actifs statiques servis tels quels
+  index.html              # HTML entry point (favicon + manifest tags)
+  public/                 # Static assets served as-is
   src/
-    main.ts               # Bootstrapping Vue + Pinia + Router
-    App.vue               # Shell global + barre de navigation + ThemeToggle
+    main.ts               # Vue + Pinia + Router bootstrap
+    App.vue               # Global shell + navigation + ThemeToggle
     assets/
-      base.css            # Reset / fondations
-      main.css            # Variables de thème + styles globaux
+      base.css            # Reset/foundation styles
+      main.css            # Theme variables + global styles
     components/
-      ThemeToggle.vue     # Bascule dark/light persistée
-      CreateReservationModal.vue # Formulaire modale création réservation
+      ThemeToggle.vue     # Persisted dark/light switch
+      CreateReservationModal.vue # Reservation creation modal
     router/
-      index.ts            # Définition des routes & guards d'auth
-    services/             # Accès API (axios abstrait)
-      api.ts              # Instance axios + intercepteurs token
+      index.ts            # Route definitions and auth guards
+    services/             # API access layer (axios abstraction)
+      api.ts              # Axios instance + token interceptors
       auth.ts             # Auth endpoints
-      users.ts            # Récupération utilisateurs
-      reservations.ts     # CRUD + commentaires + inscription
+      users.ts            # Users endpoints
+      reservations.ts     # Reservation CRUD + comments + registration
     stores/
-      auth.ts             # Store utilisateur / token / actions login/register
-      reservations.ts     # Store réservations (listes, détail, mutations)
+      auth.ts             # User/token state + login/register actions
+      reservations.ts     # Reservation state (lists, detail, mutations)
     types/
-      index.ts            # Interfaces partagées UI
-    views/                # Pages de haut niveau (routées)
+      index.ts            # Shared UI interfaces
+    views/                # Top-level routed pages
       HomeView.vue
       LoginView.vue
       DashboardView.vue
@@ -53,56 +53,56 @@ client/
       AboutView.vue
 ```
 
-## 🔐 Authentification côté client
+## Client Authentication
 
-Liste des points clés :
+Key points:
 
-- Le token JWT retourné par l'API est intercepté et stocké (Authorization → localStorage).
-- Chaque requête sortante (sauf endpoints publics) ajoute `Authorization: Bearer <token>`.
-- Au démarrage (`App.vue`) si un token existe, on tente de rafraîchir l'utilisateur courant.
-- Le mot de passe côté UI est "normalisé" (l'implémentation backend utilisant un champ spécifique a été masquée dans la vue Login/Inscription).
-- Page Profil (`/profile`) : modification du mot de passe (PUT `/users/{login}`) + suppression compte (DELETE) avec confirmation.
+- The JWT returned by the API is intercepted and stored (Authorization header to localStorage)
+- Every outgoing request (except public endpoints) includes `Authorization: Bearer <token>`
+- On startup (`App.vue`), if a token exists, the app attempts to refresh the current user
+- UI password handling is normalized (legacy backend-specific field behavior is hidden from the login/register view)
+- Profile page (`/profile`) supports password update (PUT `/users/{login}`) and account deletion (DELETE) with confirmation
 
-## 🌐 Routing & Navigation
+## Routing and Navigation
 
-| Route | Nom | Auth requise | Description |
-|-------|-----|--------------|-------------|
-| `/` | home | Non | Page d'accueil marketing + CTA |
-| `/login` | login | Non (redirige si déjà loggé) | Connexion / inscription |
-| `/users` | users | Oui (peut être public selon config) | Listing des utilisateurs |
-| `/about` | about | Non | Présentation rapide |
-| `/profile` | profile | Oui | Gestion du compte (stats + changement mot de passe + suppression) |
-| `/dashboard` | dashboard | Oui | Liste des réservations (actives + terminées), actions & commentaires |
-| `/reservations/:id` | reservation-detail | Oui | Détail d'une réservation (players, comments) |
-| `/reservations/:id/edit` | reservation-edit | Oui (owner) | Édition / suppression réservation |
+| Route | Name | Auth Required | Description |
+|-------|------|---------------|-------------|
+| `/` | home | No | Landing page and CTA |
+| `/login` | login | No (redirects if already logged in) | Sign in / sign up |
+| `/users` | users | Yes (can be restricted by config) | User listing |
+| `/about` | about | No | Project overview |
+| `/profile` | profile | Yes | Account management (stats + password change + deletion) |
+| `/dashboard` | dashboard | Yes | Reservation lists (active + completed), actions, and comments |
+| `/reservations/:id` | reservation-detail | Yes | Reservation details (players, comments) |
+| `/reservations/:id/edit` | reservation-edit | Yes (owner) | Reservation edit/delete |
 
-Guards :
+Guards:
 
-- `meta.requiresAuth` → redirection vers `/login` si non authentifié.
-- Visite `/login` déjà loggé → redirection `/dashboard`.
+- `meta.requiresAuth` redirects to `/login` when unauthenticated
+- Visiting `/login` while authenticated redirects to `/dashboard`
 
-## 🗃️ State Management (Pinia)
+## State Management (Pinia)
 
-### Store `auth`
+### `auth` store
 
-- State : `user`, `token`, `loading`, `error`.
-- Actions : `login`, `register`, `logout`, `fetchCurrentUser`.
-- Getters : `isAuthenticated` (boolean).
+- State: `user`, `token`, `loading`, `error`
+- Actions: `login`, `register`, `logout`, `fetchCurrentUser`
+- Getter: `isAuthenticated` (boolean)
 
-### Store `reservations`
+### `reservations` store
 
-- State : `reservations` (brutes), `currentReservation`, `loading`, `error`.
-- Mutations / Actions principales :
-  - `fetchReservations()` : charge collection (follow links → détails).
-  - `fetchReservation(id)` : charge détail unique.
-  - `createReservation(data)`.
-  - `registerToReservation(id)` / `unregisterFromReservation(id)` (rafraîchissent uniquement la liste des joueurs via endpoint `/players`).
-  - `refreshPlayers(id)` : action interne pour ne mettre à jour que `players`.
-  - `addComment(id, {content})` (recharge le détail complet – optimisation future possible).
-- Dérivés : filtrage `activeReservations` vs `completedReservations`.
-- Interne : normalisation des players (extraction login depuis liens).
+- State: raw `reservations`, `currentReservation`, `loading`, `error`
+- Main actions:
+  - `fetchReservations()`: loads collection (follow links to details)
+  - `fetchReservation(id)`: loads one reservation detail
+  - `createReservation(data)`
+  - `registerToReservation(id)` / `unregisterFromReservation(id)` (refresh players only through `/players` endpoint)
+  - `refreshPlayers(id)`: internal targeted players update
+  - `addComment(id, { content })` (currently reloads full detail)
+- Derived lists: `activeReservations` vs `completedReservations`
+- Internal normalization: extracts player login values from links
 
-## 🔄 Flux de données (ex. réservation)
+## Data Flow (reservation example)
 
 ```mermaid
 graph TD;
@@ -115,45 +115,45 @@ Axios --> Store;
 Store --> UI;
 ```
 
-## 💬 Commentaires
+## Comments
 
-- Stockés dans la réservation (liste ordonnée).
-- Ajout via POST `/reservations/{id}/comment` (réponse 204) puis rafraîchissement ciblé.
-- UI : zone repliable sur dashboard + bloc dédié dans la vue détail.
+- Stored inside reservation objects (ordered list)
+- Added through POST `/reservations/{id}/comment` (204 response), then targeted refresh
+- UI is available both in the dashboard collapsible area and the dedicated detail view
 
-## 👥 Inscriptions / Désinscriptions
+## Registration / Unregistration
 
-- POST `/reservations/{id}/register` (body `{}` obligatoire pour Content-Type JSON).
-- DELETE `/reservations/{id}/unregister`.
-- Après action : seul le tableau `players` est rafraîchi (GET `/reservations/{id}/players`) au lieu de recharger l'objet complet.
-- Règles UI : bouton désactivé si passé, complet, déjà inscrit (pour inscription) ou si terminé (pour désinscription).
+- POST `/reservations/{id}/register` (empty JSON body `{}` required)
+- DELETE `/reservations/{id}/unregister`
+- After action, only `players` is refreshed (GET `/reservations/{id}/players`) instead of reloading full reservation data
+- UI rules disable actions when reservation is in the past, full, or already joined
 
-## 🛠️ Édition / Suppression de réservation
+## Reservation Edit/Delete
 
-Vue `ReservationEditView.vue` (route `/reservations/:id/edit`) :
+`ReservationEditView.vue` (`/reservations/:id/edit`):
 
-- Accès réservé au propriétaire (contrôle login == ownerId après fetch).
-- Champs éditables : table, date/heure début, durée (recalcule endTime localement).
-- Boutons : sauvegarder, réinitialiser, supprimer (dialogue confirmation).
+- Owner-only access (login must match `ownerId`)
+- Editable fields: table, start date/time, duration (end time is recomputed locally)
+- Actions: save, reset, delete (with confirmation dialog)
 
-## 👤 Gestion du profil
+## Profile Management
 
-Vue `ProfileView.vue` :
+`ProfileView.vue`:
 
-- Affiche login + compteurs (créées / participations).
-- Modification mot de passe (PUT) sans afficher l'ancien.
-- Suppression compte (DELETE) → logout + redirection login.
+- Displays login plus counters (created reservations / participations)
+- Supports password update (PUT) without exposing previous password
+- Supports account deletion (DELETE), then logout and login redirect
 
-## ❤️ Health-check & Résilience
+## Health Check and Resilience
 
-- Store `system` + service `systemService.getHealth()`.
-- Poll adaptatif: base 30s, backoff exponentiel (×1.6 jusqu'à 5 min) si DOWN (cold start Render support).
-- Bannière rouge en haut si indisponible.
+- `system` store + `systemService.getHealth()`
+- Adaptive polling: 30s base interval, exponential backoff (`x1.6` up to 5 minutes) when backend is DOWN
+- Top warning banner shown when backend is unavailable
 
-## 🌍 Configuration multi-environnements
+## Multi-Environment Configuration
 
-- Variable `VITE_API_BASE_URL` (ex: `https://<your-api-url>`).
-- En développement (non définie) : proxy Vite `/api` → backend local (voir `vite.config.ts`).
+- `VITE_API_BASE_URL` (example: `https://<your-api-url>`)
+- In development (undefined variable), Vite proxy maps `/api` to local backend (see `vite.config.ts`)
 
 Build production exemple :
 
@@ -161,83 +161,83 @@ Build production exemple :
 VITE_API_BASE_URL=https://<your-api-url> npm run build
 ```
 
-Le bundle utilisera alors l'URL distante directement.
+The bundle will then call the remote API URL directly.
 
-## 🎨 Thème sombre / clair
+## Light/Dark Theme
 
-- Variables CSS (`--color-bg`, `--color-surface`, `--color-text`, etc.) définies dans `main.css`.
-- Attribut `data-theme="dark|light"` appliqué sur `<body>`.
-- Persistance clé `theme` (localStorage) + détection `prefers-color-scheme`.
-- Composant `ThemeToggle.vue` (icône 🌙 / ☀️ + bascule).
+- CSS variables (`--color-bg`, `--color-surface`, `--color-text`, etc.) are defined in `main.css`
+- `data-theme="dark|light"` is applied on `<body>`
+- Theme preference is persisted in localStorage (`theme`) with `prefers-color-scheme` detection
+- `ThemeToggle.vue` handles UI switching
 
-### Principales variables
+### Main Variables
 
 ```css
 :root { --color-bg:#f8fafc; --color-surface:#fff; --color-text:#1a202c; }
 body[data-theme="dark"] { --color-bg:#0f172a; --color-surface:#1e293b; --color-text:#e2e8f0; }
 ```
 
-## 🧩 Composants clés
+## Key Components
 
-| Composant | Rôle |
+| Component | Role |
 |-----------|------|
-| `App.vue` | Shell + nav + injection ThemeToggle |
-| `LoginView.vue` | Login/Inscription (UI normalisée) |
-| `UsersView.vue` | Liste utilisateurs + stats basiques |
-| `ThemeToggle.vue` | Gestion & persistance du thème |
-| `DashboardView.vue` | Agrégation réservations + actions + commentaires inline |
-| `ReservationDetailView.vue` | Vue complète réservation |
-| `CreateReservationModal.vue` | Formulaire création (validation basique) |
+| `App.vue` | App shell, navigation, theme toggle integration |
+| `LoginView.vue` | Login/register UI |
+| `UsersView.vue` | User listing and basic stats |
+| `ThemeToggle.vue` | Theme switch and persistence |
+| `DashboardView.vue` | Reservation aggregation, actions, inline comments |
+| `ReservationDetailView.vue` | Full reservation detail view |
+| `CreateReservationModal.vue` | Reservation creation form |
 
-## 🛡️ Sécurité & Confort
+## Security and UX Safeguards
 
-- Intercepteur axios : ajout automatique du token sauf endpoints publics.
-- Redirection guard (perte de session → page login).
-- Désactivation des actions invalides (passé, complet, déjà inscrit).
-- Sanitisation simple côté client (trim des commentaires).
+- Axios interceptor injects token automatically except on public endpoints
+- Route guards handle session loss and redirect to login
+- Invalid actions are disabled in UI (past reservation, full reservation, already joined)
+- Basic client-side sanitization (comment trimming)
 
-## ⚠️ Gestion des erreurs UI
+## UI Error Handling
 
-| Contexte | Stratégie |
-|----------|-----------|
-| Auth | Message dans `authStore.error` affiché sous formulaire |
-| Réservations | Message dans sections + bouton Réessayer |
-| Création réservation | Message dans la modale (bloc rouge) |
+| Context | Strategy |
+|---------|----------|
+| Auth | Message displayed through `authStore.error` under the form |
+| Reservations | Inline message in section + retry button |
+| Reservation creation | Error message inside modal |
 
-## 📦 Build & Scripts
+## Build and Scripts
 
-Depuis le dossier `client/` :
+Run from the `client/` folder:
 
-| Script | Commande | Description |
-|--------|----------|-------------|
-| Dev | `npm run dev` | Démarrage Vite + HMR |
-| Build | `npm run build` | Build production (dist) |
-| Preview | `npm run preview` | Prévisualisation du build |
-| Lint | `npm run lint` | Vérification ESLint |
+| Script | Command | Description |
+|--------|---------|-------------|
+| Dev | `npm run dev` | Start Vite with HMR |
+| Build | `npm run build` | Build production bundle (`dist`) |
+| Preview | `npm run preview` | Preview production build |
+| Lint | `npm run lint` | Run ESLint checks |
 
-*(Vérifier le `package.json` pour les scripts exacts si modifiés)*
+Check `package.json` if script definitions change.
 
-## 🚀 Performance & Optimisations
+## Performance and Optimization
 
-- Chargement paresseux des vues (import() dans le router) sauf Home.
-- Suivi des liens de réservations en parallèle (promises) → agrégation UI.
-- Minimisation CSS personnalisée (pas de framework lourd).
-- Cache navigateur naturel pour assets `public/`.
+- Lazy-loaded route components (`import()`), except Home
+- Parallel reservation link following for faster UI aggregation
+- Lightweight custom CSS (no heavy framework dependency)
+- Standard browser caching for `public/` assets
 
-## 🧪 Tests
+## Tests
 
-(Aucun test frontend formalisé présent actuellement. Ajout recommandé : vitest + Testing Library pour stores & composants critiques.)
+No formal frontend test suite is currently included. Recommended additions: Vitest + Testing Library for critical stores and components.
 
-## 🛠️ Points d'extension futurs
+## Future Extensions
 
-1. Pagination / filtrage des réservations.
-2. WebSocket ou SSE pour commentaires temps réel sans refresh manuel.
-3. Profil utilisateur dédié (`/users/:login`).
-4. Formulaire édition réservation (owner uniquement).
-5. Accessibilité (ARIA rôles + focus management modale).
-6. Animations douces sur bascule thème (transition `color, background-color`).
+1. Reservation pagination and filtering
+2. WebSocket or SSE for real-time comments without manual refresh
+3. Dedicated user profile route (`/users/:login`)
+4. Enhanced reservation edit workflow (owner-only)
+5. Accessibility improvements (ARIA roles and modal focus management)
+6. Smooth theme transition effects (`color`, `background-color`)
 
-## 🔧 Snippet intercepteur axios (résumé)
+## Axios Interceptor Snippet (summary)
 
 ```ts
 api.interceptors.response.use(resp => {
@@ -248,4 +248,4 @@ api.interceptors.response.use(resp => {
 ```
 
 ---
-*Documentation client générée pour refléter l'état actuel de l'interface et faciliter l'onboarding & l'évolution.*
+This client documentation reflects the current application behavior and is intended to simplify onboarding and future iteration.
