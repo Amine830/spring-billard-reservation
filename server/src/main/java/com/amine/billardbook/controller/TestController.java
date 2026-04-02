@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 /**
- * Controller pour les opérations de test - nettoyage des données
+ * Controller for test operations and data reset.
  */
 @RestController
 @RequestMapping("/test")
@@ -27,13 +27,13 @@ public class TestController {
     @DeleteMapping("/reset")
     public ResponseEntity<String> resetAllData() {
         try {
-            // Vider les réservations via réflexion pour accéder à la collection privée
+            // Clear reservations by reflection to access the private collection.
             Field reservationField = reservationDao.getClass().getSuperclass().getDeclaredField("collection");
             reservationField.setAccessible(true);
             List<?> reservationCollection = (List<?>) reservationField.get(reservationDao);
             reservationCollection.clear();
             
-            // Vider les utilisateurs de la même manière
+            // Clear users the same way.
             Field userField = userDao.getClass().getSuperclass().getDeclaredField("collection");
             userField.setAccessible(true);
             List<?> userCollection = (List<?>) userField.get(userDao);

@@ -213,15 +213,7 @@ public class ReservationOperationService {
         List<Reservation> reservations = (List<Reservation>) reservationDao.findAll();
 
         //System.out.println("DEBUG: Searching for reservation: " + name);
-        //System.out.println("DEBUG: Current reservations in list:");
-        for (int i = 0; i < reservations.size(); i++) {
-            Reservation reservation = reservations.get(i);
-            if (reservation != null) {
-                //System.out.println("  Index " + i + ": " + reservation.getId() + " (tableId: " + reservation.getTableId() + ", owner: " + reservation.getOwnerId() + ")");
-            } else {
-                //System.out.println("  Index " + i + ": null (deleted)");
-            }
-        }
+        // Debug logging intentionally removed.
 
         // Itérer sur la liste pour trouver la réservation par son ID
         for (int i = 0; i < reservations.size(); i++) {
@@ -248,7 +240,6 @@ public class ReservationOperationService {
             // Mais on ne peut pas être sûr, donc on considère que c'est supprimé si l'ID a un format valide
             // (ici on assume qu'un ID valide fait 8 caractères comme générés par UUID)
             if (name != null && name.length() == 8) {
-                //System.out.println("DEBUG: Reservation " + name + " appears to be deleted (format matches UUID)");
                 throw new DeletedReservationException("Reservation with id " + name + " has been deleted.");
             }
         }

@@ -2,6 +2,7 @@
 
 <!-- Badges -->
 [![Netlify Status](https://api.netlify.com/api/v1/badges/9b86218f-4efa-4e14-9348-1c4065a03a8b/deploy-status)](https://app.netlify.com/projects/billard-book/deploys)
+[![Multi-Stage CI](https://github.com/Amine830/spring-billard-reservation/actions/workflows/ci-multistage.yml/badge.svg)](https://github.com/Amine830/spring-billard-reservation/actions/workflows/ci-multistage.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.x-6DB33F?logo=springboot&logoColor=white)
 ![Vue 3](https://img.shields.io/badge/Vue.js-3-42b883?logo=vue.js&logoColor=white)

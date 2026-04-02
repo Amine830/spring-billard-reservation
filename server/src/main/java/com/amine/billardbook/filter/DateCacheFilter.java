@@ -33,8 +33,8 @@ public class DateCacheFilter extends HttpFilter {
         // Appliquer le cache pour les utilisateurs et les réservations
         if ("GET".equalsIgnoreCase(method) && (url.startsWith("/users/") || url.startsWith("/reservations/"))) {
             handleGetRequest(request, response, chain, url);
-        } else if (("POST".equalsIgnoreCase(method) || "PUT".equalsIgnoreCase(method) || "DELETE".equalsIgnoreCase(method)) 
-                   && (url.startsWith("/users/") || url.startsWith("/reservations"))) {
+        } else if (("POST".equalsIgnoreCase(method) || "PUT".equalsIgnoreCase(method) || "DELETE".equalsIgnoreCase(method)) &&
+            (url.startsWith("/users/") || url.startsWith("/reservations"))) {
             handleModificationRequest(request, response, chain, url);
         } else {
             chain.doFilter(request, response);
@@ -70,7 +70,7 @@ public class DateCacheFilter extends HttpFilter {
         Date now = new Date();
         lastModifiedMap.put(url, now);
         
-        // Si on modifie une sous-ressource (comme /reservations/{id}/comment), 
+        // If a sub-resource changes (for example /reservations/{id}/comment),
         // on doit aussi mettre à jour la ressource parent (/reservations/{id})
         if (url.matches("/reservations/[^/]+/.*")) {
             String parentUrl = url.replaceFirst("(/reservations/[^/]+)/.*", "$1");
